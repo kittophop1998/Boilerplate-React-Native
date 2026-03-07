@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import useHelloQuery from '../hooks/useHelloQuery';
-import Loading from '../components/Loading';
+import useHelloQuery from '@hooks/useHelloQuery';
+import Loading from '@components/Loading';
 
 export default function HomeScreen({ navigation }: any) {
   const { data, isLoading, isError, error, refetch } = useHelloQuery();

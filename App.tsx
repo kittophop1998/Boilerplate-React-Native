@@ -5,41 +5,56 @@
  * @format
  */
 
-import React, { useState } from 'react';
-import { StatusBar, StyleSheet, useColorScheme } from 'react-native';
+import React from 'react';
+import { StatusBar, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import MainTabs from './src/navigation/MainTabs';
-import AuthNavigator from './src/navigation/AuthNavigator';
+import { AuthProvider, useAuth } from '@context/AuthContext';
+import ErrorBoundary from '@components/ErrorBoundary';
+import Loading from '@components/Loading';
+import MainTabs from '@navigation/MainTabs';
+import AuthNavigator from '@navigation/AuthNavigator';
 
 const queryClient = new QueryClient();
 
-function App() {
+// ─── Inner navigator — consumes AuthContext ───────────────────────────────────
+function RootNavigator() {
+  const { token, isLoading, login, logout } = useAuth();
   const isDarkMode = useColorScheme() === 'dark';
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  if (isLoading) {
+    return <Loading message="Restoring session..." />;
+  }
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-        <NavigationContainer>
-          {isLoggedIn ? (
-            <MainTabs />
-          ) : (
-            <AuthNavigator onLogin={() => setIsLoggedIn(true)} />
-          )}
-        </NavigationContainer>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <NavigationContainer>
+        {token ? (
+          <MainTabs onLogout={logout} />
+        ) : (
+          <AuthNavigator onLogin={login} />
+        )}
+      </NavigationContainer>
+    </>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
+// ─── Root App ─────────────────────────────────────────────────────────────────
+function App() {
+  return (
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <RootNavigator />
+          </AuthProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
+  );
+}
 
 export default App;

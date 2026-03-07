@@ -1,9 +1,9 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from '../screens/LoginScreen';
+import LoginScreen from '@screens/LoginScreen';
 
 type Props = {
-  onLogin: () => void;
+  onLogin: (token: string) => void;
 };
 
 const Stack = createNativeStackNavigator();

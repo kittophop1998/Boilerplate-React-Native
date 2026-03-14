@@ -21,7 +21,7 @@ function PlayerSlot({
   player,
   onTransfer,
 }: {
-  player: HeistPlayer | null;
+  player: HeistPlayer;
   index?: number;
   onTransfer?: (player: HeistPlayer) => void;
 }) {
@@ -30,7 +30,7 @@ function PlayerSlot({
   const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
-    if (player?.isReady) {
+    if (player.isReady) {
       Animated.loop(
         Animated.sequence([
           Animated.timing(readyAnim, { toValue: 1, duration: 700, useNativeDriver: false }),
@@ -40,10 +40,10 @@ function PlayerSlot({
     } else {
       readyAnim.setValue(0);
     }
-  }, [player?.isReady, readyAnim]);
+  }, [player.isReady, readyAnim]);
 
   // Only local player can flip to see their own role
-  const canFlip = player?.isLocal ?? false;
+  const canFlip = player.isLocal;
 
   const handleFlip = () => {
     if (!canFlip) return;
@@ -60,19 +60,6 @@ function PlayerSlot({
     inputRange: [0, 1],
     outputRange: ['rgba(0,230,118,0)', 'rgba(0,230,118,1)'],
   });
-
-  if (!player) {
-    return (
-      <View style={[styles.slot, styles.emptySlot]}>
-        <Text style={styles.emptySlotText}>Waiting...</Text>
-        <View style={styles.slotDots}>
-          {[0, 1, 2].map((i) => (
-            <View key={i} style={[styles.dot, { opacity: 0.3 + i * 0.3 }]} />
-          ))}
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.slotWrapper}>
@@ -157,12 +144,8 @@ export default function LobbyScreen({ navigation }: Props) {
     }
   }, [roomPhase, navigation]);
 
-  const slots: (HeistPlayer | null)[] = [
-    lobbyPlayers[0] ?? null,
-    lobbyPlayers[1] ?? null,
-    lobbyPlayers[2] ?? null,
-    lobbyPlayers[3] ?? null,
-  ];
+  // Only show players who have actually joined
+  const slots = lobbyPlayers.slice(0, 4);
 
   const allReady = lobbyPlayers.length === 4 && lobbyPlayers.every((p) => p.isReady);
   const localPlayer = lobbyPlayers.find((p) => p.isLocal);
@@ -200,7 +183,7 @@ export default function LobbyScreen({ navigation }: Props) {
       <View style={styles.slotsGrid}>
         {slots.map((player, i) => (
           <PlayerSlot
-            key={i}
+            key={player.id}
             player={player}
             index={i}
             onTransfer={(p) => {
@@ -320,10 +303,6 @@ const styles = StyleSheet.create({
   slotBack: { backgroundColor: '#1a1200', borderColor: Colors.gold, position: 'absolute', top: 0, left: 0 },
   cardFront: { backfaceVisibility: 'hidden' } as any,
   cardBack: { backfaceVisibility: 'hidden' } as any,
-  emptySlot: { borderStyle: 'dashed', borderColor: Colors.inactive, opacity: 0.5 },
-  emptySlotText: { color: Colors.textDisabled, fontSize: FontSize.sm },
-  slotDots: { flexDirection: 'row', marginTop: 8, gap: 4 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.gold },
 
   slotAvatar: { fontSize: 40, marginBottom: 6 },
   slotName: { fontSize: FontSize.sm, color: Colors.textPrimary, fontWeight: FontWeight.semiBold as any, textAlign: 'center' },

@@ -20,6 +20,9 @@ import SettingsScreen from '@screens/SettingsScreen';
 // Theme
 import { Colors, FontSize, FontWeight } from '@theme/index';
 
+// Background
+import SkiaBackground from '@components/skia/SkiaBackground';
+
 // ─────────────────────────────────────────────────────────────────────────────
 type Props = { onLogout: () => void };
 
@@ -43,7 +46,7 @@ const ProfileIcon = makeTabIcon('👤');
 // Stack screens use edges={['top','bottom']} — no tab bar below them
 function HeistStackScreen() {
   return (
-    <HeistStack.Navigator screenOptions={{ headerShown: false }}>
+    <HeistStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <HeistStack.Screen name="Home"     component={HomeScreen} />
       <HeistStack.Screen name="Lobby"    component={LobbyScreen} />
       <HeistStack.Screen name="Game"     component={GameScreen} />
@@ -58,7 +61,7 @@ function HeistStackScreen() {
 // ── Role Stack ────────────────────────────────────────────────────────────────
 function RoleStackScreen() {
   return (
-    <RoleStack.Navigator screenOptions={{ headerShown: false }}>
+    <RoleStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <RoleStack.Screen name="RoleLibrary" component={RoleLibraryScreen} />
     </RoleStack.Navigator>
   );
@@ -67,7 +70,7 @@ function RoleStackScreen() {
 // ── Shop Stack ────────────────────────────────────────────────────────────────
 function ShopStackScreen() {
   return (
-    <ShopStack.Navigator screenOptions={{ headerShown: false }}>
+    <ShopStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <ShopStack.Screen name="Shop" component={ShopScreen} />
     </ShopStack.Navigator>
   );
@@ -80,7 +83,7 @@ function ProfileStackScreen({ onLogout }: Props) {
     [onLogout],
   );
   return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
+    <ProfileStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <ProfileStack.Screen name="Settings">
         {(props) => <SettingsWithLogout {...props} />}
       </ProfileStack.Screen>
@@ -91,9 +94,12 @@ function ProfileStackScreen({ onLogout }: Props) {
 // ── Main Tabs ──────────────────────────────────────────────────────────────────
 export default function MainTabs({ onLogout }: Props) {
   return (
+    <SkiaBackground>
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        // Make every tab screen transparent so SkiaBackground shows through
+        sceneStyle: { backgroundColor: 'transparent' },
         // ↓ react-navigation automatically adds bottom inset for nav bar
         tabBarStyle: tabStyles.bar,
         tabBarActiveTintColor: Colors.gold,
@@ -125,6 +131,7 @@ export default function MainTabs({ onLogout }: Props) {
         {() => <ProfileStackScreen onLogout={onLogout} />}
       </Tab.Screen>
     </Tab.Navigator>
+    </SkiaBackground>
   );
 }
 

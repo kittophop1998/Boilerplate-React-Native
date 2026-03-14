@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { loadPlayer, savePlayer, DEFAULT_PLAYER } from '@services/stampService';
 import type { PlayerProfile } from '@game/stamp';
-import { SkiaBackground, SkiaGlassCard, SkiaGlowButton } from '@components/skia';
+import { SkiaGlassCard, SkiaGlowButton } from '@components/skia';
 
 const CARD_W = Dimensions.get('window').width - Spacing.md * 2;
 
@@ -38,8 +38,7 @@ export default function SettingsScreen({ onLogout }: Props) {
   };
 
   return (
-    <SkiaBackground>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
           {/* ── Header ─────────────────────────────────────────────────────── */}
@@ -137,7 +136,6 @@ export default function SettingsScreen({ onLogout }: Props) {
 
         </ScrollView>
       </SafeAreaView>
-    </SkiaBackground>
   );
 }
 

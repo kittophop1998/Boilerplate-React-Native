@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { useGameStore } from '../store/gameStore';
 import type { GlobalShopItem, InMatchShopItem } from '@game/game';
-import { SkiaBackground, SkiaBadge, SkiaGlowButton } from '@components/skia';
+import { SkiaBadge, SkiaGlowButton } from '@components/skia';
 
 const { width: W } = Dimensions.get('window');
 const CAROUSEL_CARD_W = W * 0.52;
@@ -173,8 +173,7 @@ export default function ShopScreen() {
   }
 
   return (
-    <SkiaBackground>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <ScrollView showsVerticalScrollIndicator={false}>
 
@@ -278,7 +277,6 @@ export default function ShopScreen() {
           onClose={() => setSelectedItem(null)}
         />
       </SafeAreaView>
-    </SkiaBackground>
   );
 }
 

@@ -2,7 +2,7 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AuthProvider, useAuth } from '@context/AuthContext';
@@ -12,6 +12,15 @@ import MainTabs from '@navigation/MainTabs';
 import AuthNavigator from '@navigation/AuthNavigator';
 
 const queryClient = new QueryClient();
+
+// ── Transparent nav theme — lets SkiaBackground show through all screens ───────
+const TransparentTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent',
+  },
+};
 
 // ─── Inner navigator — consumes AuthContext ───────────────────────────────────
 function RootNavigator() {
@@ -24,7 +33,7 @@ function RootNavigator() {
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#0D0D0D" />
-      <NavigationContainer>
+      <NavigationContainer theme={TransparentTheme}>
         {token ? (
           <MainTabs onLogout={logout} />
         ) : (

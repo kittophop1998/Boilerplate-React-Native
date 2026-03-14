@@ -51,9 +51,9 @@ export default function LoginScreen({ onLogin }: Props) {
           <View style={styles.logoBox}>
             <Text style={styles.logoEmoji}>🏰</Text>
           </View>
-          <Text style={styles.brandTitle}>CORE DEFENSE</Text>
-          <Text style={styles.brandSubtitle}>10-Player Tower Survival</Text>
-          <Text style={styles.brandDesc}>Survive. Steal. Execute. Ascend.</Text>
+          <Text style={styles.brandTitle}>Greedy Gang</Text>
+          <Text style={styles.brandSubtitle}>แก๊งโจรหัวหมอ</Text>
+          {/* <Text style={styles.brandDesc}></Text> */}
         </View>
 
         {/* ── Form ──────────────────────────────────────────────────────── */}

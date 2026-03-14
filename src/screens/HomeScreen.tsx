@@ -10,7 +10,6 @@ import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { useGameStore } from '../store/gameStore';
 import type { NemesisRecord } from '@game/game';
 import {
-  SkiaBackground,
   SkiaGlowButton,
   SkiaGlassCard,
   SkiaBadge,
@@ -60,8 +59,7 @@ export default function HomeScreen({ navigation }: Props) {
   };
 
   return (
-    <SkiaBackground>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
@@ -187,7 +185,6 @@ export default function HomeScreen({ navigation }: Props) {
           <View style={styles.scrollBottom} />
         </ScrollView>
       </SafeAreaView>
-    </SkiaBackground>
   );
 }
 

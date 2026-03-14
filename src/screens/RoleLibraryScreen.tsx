@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { useGameStore } from '../store/gameStore';
 import type { HeistRole } from '@game/game';
-import { SkiaBackground, SkiaBadge, SkiaGlassCard, SkiaGlowButton } from '@components/skia';
+import { SkiaBadge, SkiaGlassCard, SkiaGlowButton } from '@components/skia';
 
 const { width: W } = Dimensions.get('window');
 const CARD_GAP = Spacing.md;
@@ -214,8 +214,7 @@ export default function RoleLibraryScreen({ navigation: _navigation }: Props) {
   const [selectedRole, setSelectedRole] = useState<HeistRole | null>(null);
 
   return (
-    <SkiaBackground>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
 
         {/* Header */}
@@ -267,7 +266,6 @@ export default function RoleLibraryScreen({ navigation: _navigation }: Props) {
           />
         )}
       </SafeAreaView>
-    </SkiaBackground>
   );
 }
 

@@ -1,12 +1,6 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
+// ─── Core Defense — Root App ──────────────────────────────────────────────────
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -22,15 +16,14 @@ const queryClient = new QueryClient();
 // ─── Inner navigator — consumes AuthContext ───────────────────────────────────
 function RootNavigator() {
   const { token, isLoading, login, logout } = useAuth();
-  const isDarkMode = useColorScheme() === 'dark';
 
   if (isLoading) {
-    return <Loading message="Restoring session..." />;
+    return <Loading message="Loading Core Defense…" />;
   }
 
   return (
     <>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <StatusBar barStyle="light-content" backgroundColor="#0D0D0D" />
       <NavigationContainer>
         {token ? (
           <MainTabs onLogout={logout} />

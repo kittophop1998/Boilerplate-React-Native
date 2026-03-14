@@ -4,13 +4,18 @@
     "types": ["jest"],
     "baseUrl": ".",
     "paths": {
+      "@store/*": ["src/store/*"],
       "@screens/*": ["src/screens/*"],
       "@components/*": ["src/components/*"],
       "@hooks/*": ["src/hooks/*"],
       "@services/*": ["src/services/*"],
       "@navigation/*": ["src/navigation/*"],
       "@context/*": ["src/context/*"],
-      "@types/*": ["src/types/*"]
+      "@types/*": ["src/types/*"],
+      "@game/*": ["src/types/*"],
+      "@theme/*": ["src/theme/*"],
+      "@theme/index": ["src/theme/index.ts"],
+      "@data/*": ["src/data/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

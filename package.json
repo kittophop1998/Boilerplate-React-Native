@@ -1,5 +1,5 @@
 {
-  "name": "waygo",
+  "name": "stamp_duel",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,21 +10,31 @@
     "test": "jest"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^3.0.1",
+    "@faker-js/faker": "^10.3.0",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native/new-app-screen": "0.84.0",
     "@react-navigation/bottom-tabs": "^7.14.0",
     "@react-navigation/native": "^7.1.28",
     "@react-navigation/native-stack": "^7.13.0",
+    "@rnmapbox/maps": "^10.2.10",
+    "@shopify/react-native-skia": "^2.5.1",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.6",
     "babel-plugin-module-resolver": "^5.0.2",
+    "boardgame.io": "^0.50.2",
+    "geolib": "^3.3.4",
+    "lottie-react-native": "^7.3.6",
     "react": "19.2.3",
     "react-native": "0.84.0",
     "react-native-config": "^1.6.1",
+    "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.30.0",
+    "react-native-reanimated": "^4.2.2",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.23.0",
-    "react-native-vector-icons": "^10.3.0"
+    "react-native-vector-icons": "^10.3.0",
+    "react-native-worklets": "^0.7.4",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

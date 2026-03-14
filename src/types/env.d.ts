@@ -4,6 +4,7 @@ declare module 'react-native-config' {
     API_URL: string;
     APP_ENV: 'development' | 'staging' | 'production';
     APP_NAME: string;
+    MAPBOX_PUBLIC_TOKEN: string;
   }
 
   export const Config: NativeConfig;

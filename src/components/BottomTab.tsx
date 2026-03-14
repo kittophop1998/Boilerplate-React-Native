@@ -1,60 +1,46 @@
+// ─── BottomTab — Stamp Duel Custom Tab Bar ───────────────────────────────────
+// Floating pill tab bar with emoji icons, Modern Minimalist style
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { Colors, Spacing, Radius, FontWeight } from '@theme/index';
 
-// Custom bottom tab bar with simple emoji icons (no extra deps), floating style,
-// rounded border, shadow, and clear active-tab visuals.
-export default function CustomBottomTabBar({ state, descriptors, navigation, styleOverrides }: any) {
-  // Return a MaterialIcons name for a given route. We'll render the icon element
-  // in the tab render block so we can control size & color based on focus.
-  const getIconName = (routeName: string) => {
-    switch (routeName.toLowerCase()) {
-      case 'home':
-        return 'home';
-      case 'login':
-      case 'profile':
-        return 'person';
-      case 'settings':
-        return 'settings';
-      case 'search':
-        return 'search';
-      case 'notifications':
-        return 'notifications';
-      default:
-        return 'help-outline';
-    }
-  };
+const TAB_ICONS: Record<string, { icon: string; label: string }> = {
+  Home:     { icon: '🎨', label: 'Gallery' },
+  Gacha:    { icon: '🎴', label: 'Explore' },
+  Duel:     { icon: '⚔️', label: 'Duel' },
+  Trade:    { icon: '🤝', label: 'Trade' },
+  Shop:     { icon: '🛍️', label: 'Shop' },
+  Settings: { icon: '⚙️', label: 'Settings' },
+};
+
+export default function CustomBottomTabBar({ state, _descriptors, navigation }: any) {
+  // Only show tabs for top-level routes
+  const visibleRoutes = state.routes.filter(
+    (r: any) => Object.keys(TAB_ICONS).includes(r.name),
+  );
 
   return (
-    <View style={[styles.outerContainer]}> 
-      <View style={[styles.container, styleOverrides?.container]}>
-        {state.routes.map((route: any, index: number) => {
-          const label = descriptors[route.key]?.options?.title ?? route.name;
-          const isFocused = state.index === index;
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        {visibleRoutes.map((route: any) => {
+          const isFocused = state.routes[state.index]?.name === route.name;
+          const { icon, label } = TAB_ICONS[route.name] ?? { icon: '●', label: route.name };
 
-          const onPress = () => {
-            // Navigate normally. If the tab is already focused, still call navigate to be consistent.
-            navigation.navigate(route.name);
-          };
+          const onPress = () => navigation.navigate(route.name);
 
           return (
             <TouchableOpacity
               key={route.key}
               accessibilityRole="button"
               accessibilityLabel={label}
+              accessibilityState={{ selected: isFocused }}
               activeOpacity={0.8}
               onPress={onPress}
               style={styles.tabWrapper}
             >
               <View style={[styles.tab, isFocused && styles.tabActive]}>
-                {/* Render MaterialIcons directly so size & color behave as expected */}
-                <MaterialIcons
-                  name={getIconName(route.name)}
-                  size={20}
-                  color={isFocused ? styles.iconActive.color : '#666'}
-                  style={styles.icon}
-                />
-                <Text style={[styles.label, isFocused && styles.labelActive]}>{label}</Text>
+                <Text style={[styles.tabIcon, isFocused && styles.tabIconActive]}>{icon}</Text>
+                <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>{label}</Text>
               </View>
             </TouchableOpacity>
           );
@@ -65,65 +51,45 @@ export default function CustomBottomTabBar({ state, descriptors, navigation, sty
 }
 
 const styles = StyleSheet.create({
-  // Outer container is used to position the floating bar above the bottom and
-  // keep it within safe area visually. Keep it full width; inner container has margins.
   outerContainer: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 16,
+    left: Spacing.md,
+    right: Spacing.md,
+    bottom: Spacing.md,
     zIndex: 10,
-    // allow the floating bar to not stretch under other elements
   },
   container: {
     flexDirection: 'row',
-    height: 66,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
+    height: 64,
+    borderRadius: Radius.xl,
+    backgroundColor: Colors.surface,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-    // Shadow / elevation
+    justifyContent: 'space-around',
+    paddingHorizontal: Spacing.xs,
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
+        shadowColor: Colors.primary,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
       },
-      android: {
-        elevation: 6,
-      },
+      android: { elevation: 8 },
     }),
+    borderWidth: 1,
+    borderColor: Colors.borderCard,
   },
-  tabWrapper: {
-    flex: 1,
-  },
+  tabWrapper: { flex: 1 },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    marginHorizontal: 6,
-    borderRadius: 12,
+    borderRadius: Radius.lg,
+    marginHorizontal: 2,
   },
-  tabActive: {
-    backgroundColor: '#EAF2FF', // light accent background for active tab
-  },
-  icon: {
-    fontSize: 18,
-    marginBottom: 2,
-    color: '#666',
-  },
-  iconActive: {
-    color: '#007AFF',
-  },
-  label: {
-    fontSize: 12,
-    color: '#444',
-  },
-  labelActive: {
-    color: '#007AFF',
-    fontWeight: '600',
-  },
+  tabActive: { backgroundColor: Colors.primary },
+  tabIcon: { fontSize: 18, marginBottom: 2 },
+  tabIconActive: {},
+  tabLabel: { fontSize: 9, color: Colors.textSecondary, fontWeight: FontWeight.medium },
+  tabLabelActive: { color: Colors.textOnDark, fontWeight: FontWeight.semiBold },
 });

@@ -1,4 +1,4 @@
-package com.waygo
+package com.core_defense
 
 import android.app.Application
 import com.facebook.react.PackageList

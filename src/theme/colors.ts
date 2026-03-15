@@ -1,104 +1,131 @@
-// ─── Heist — Vibrant & Playful Design System ─────────────────────────────────
-// Social Heist Game · High Energy · Pop Colors
-// Palette: Electric Indigo · Vivid Yellow · Hot Pink · Mint Green · Cyan Blue · Off-White
+// ─── Heist — Light Purple Pop Design System ──────────────────────────────────
+// Social Heist Game · Pop-Art Vibes · Light Lavender Palette
+// Palette: Light Purple · Lavender · White · Deep Purple · Yellow · Cyan · Orange · Red
+//
+// Tips:
+//  • On yellow buttons (#FFD23F) use deep-purple text (#4A3572) — not white
+//  • Add shadow/elevation to cards & buttons for depth on light backgrounds
+//  • Active/pressed state = slightly darker shade (e.g. #FFD23F → #E6BC38)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const Colors = {
   // ── Backgrounds ─────────────────────────────────────────────────────────
-  background: '#5D3FD3',       // Electric Indigo — main app background (vivid, modern)
-  surface: '#6B4FDC',          // Slightly lighter indigo — cards, panels
-  surfaceElevated: '#7A5FE0',  // Elevated indigo — modals, elevated containers
-  surfaceFrost: 'rgba(93,63,211,0.94)', // Frosted overlay panels
-  cardBg: '#7A5FE0',           // Elevated indigo — card backgrounds
+  background: '#9B7ED5',        // Light Purple — main app background
+  surface: '#C7B4E8',           // Light Lavender — cards, panels (UI layer separation)
+  surfaceElevated: '#D3C5EE',   // Lighter lavender — modals, elevated containers
+  surfaceFrost: 'rgba(155,126,213,0.92)', // Frosted overlay panels
+  cardBg: '#C7B4E8',            // Light Lavender — card backgrounds
 
   // ── Primary ──────────────────────────────────────────────────────────────
-  primary: '#F7F7F7',          // Off-White — main text on indigo bg
-  primaryLight: '#D6CEFF',     // Soft lavender — secondary text
-  inactive: '#8C7ABF',         // Muted indigo — disabled / cooldown elements
-  border: '#7B6BC9',           // Subtle purple border
+  primary: '#FFFFFF',           // White — main text on purple bg
+  primaryLight: '#C7B4E8',      // Light Lavender — secondary text tint
+  inactive: '#B8A8D9',          // Muted lavender — disabled / cooldown elements
+  border: '#B0A0D0',            // Subtle lavender border
 
   // ── Heist Action Buttons ─────────────────────────────────────────────────
-  shareGreen: '#6BCB77',       // Mint Green — Share button (friendly, trustworthy)
-  shareGreenGlow: 'rgba(107,203,119,0.35)',
-  stealRed: '#FF6B6B',         // Hot Pink-Red — Steal button (playful but dangerous)
+  // Share — Cyan Blue
+  shareGreen: '#51E5FF',        // Vivid Cyan — Share button
+  shareGreenGlow: 'rgba(81,229,255,0.35)',
+  shareGreenActive: '#3ACDE8',  // Pressed/active state (darker cyan)
+
+  // Steal — Pink-Red
+  stealRed: '#FF6B6B',          // Vivid Pink-Red — Steal button
   stealRedGlow: 'rgba(255,107,107,0.35)',
-  shieldBlue: '#4D96FF',       // Cyan Blue — Shield button (cool, clean)
-  shieldBlueGlow: 'rgba(77,150,255,0.35)',
+  stealRedActive: '#E65555',    // Pressed/active state
+
+  // Shield — Cyan-Teal
+  shieldBlue: '#88E0EF',        // Cyan-Teal — Shield button
+  shieldBlueGlow: 'rgba(136,224,239,0.35)',
+  shieldBlueActive: '#6FCADB',  // Pressed/active state
+
+  // Revenge / Challenge — Orange
+  revengeOrange: '#FF9F1C',     // Orange — Revenge / Challenge button
+  revengeOrangeGlow: 'rgba(255,159,28,0.38)',
+  revengeOrangeActive: '#E68A0A', // Pressed/active state
 
   // ── Legacy aliases (kept for backward compat) ────────────────────────────
-  neonGreen: '#6BCB77',
-  neonGreenGlow: 'rgba(107,203,119,0.35)',
+  neonGreen: '#51E5FF',         // remapped → share cyan
+  neonGreenGlow: 'rgba(81,229,255,0.35)',
   bloodRed: '#FF6B6B',
   bloodRedGlow: 'rgba(255,107,107,0.35)',
-  cyberGold: '#FFD93D',
-  cyberGoldGlow: 'rgba(255,217,61,0.40)',
-  electricPurple: '#5D3FD3',
-  electricPurpleGlow: 'rgba(93,63,211,0.35)',
+  cyberGold: '#FFD23F',
+  cyberGoldGlow: 'rgba(255,210,63,0.40)',
+  electricPurple: '#9B7ED5',
+  electricPurpleGlow: 'rgba(155,126,213,0.35)',
 
-  // ── Vivid Yellow (primary accent / money / CTA) ──────────────────────────
-  gold: '#FFD93D',             // Vivid Yellow — money, highlights, CTA (eye-catching)
-  goldLight: 'rgba(255,217,61,0.20)',
-  goldGlow: 'rgba(255,217,61,0.50)',
-  goldDark: '#E6B800',
+  // ── Action Yellow — primary CTA (Join Heist, etc.) ───────────────────────
+  // ⚠️  Use textOnYellow (#4A3572) for text ON this button, NOT white
+  gold: '#FFD23F',              // Vivid Yellow — primary CTA / money / highlights
+  goldLight: 'rgba(255,210,63,0.20)',
+  goldGlow: 'rgba(255,210,63,0.50)',
+  goldDark: '#E6BC38',          // Active/pressed state of yellow button
+  goldActive: '#E6BC38',        // Explicit active alias
 
-  // ── Cyan Blue (special / shield) ─────────────────────────────────────────
-  electricBlue: '#4D96FF',
-  electricBlueGlow: 'rgba(77,150,255,0.35)',
+  // ── Cyan Blue (legacy electricBlue alias) ────────────────────────────────
+  electricBlue: '#51E5FF',
+  electricBlueGlow: 'rgba(81,229,255,0.35)',
 
   // ── Accent aliases ────────────────────────────────────────────────────────
-  accent: '#FFD93D',
-  accentLight: 'rgba(255,217,61,0.18)',
-  accentDark: '#E6B800',
+  accent: '#FFD23F',
+  accentLight: 'rgba(255,210,63,0.18)',
+  accentDark: '#E6BC38',
 
   // ── Rarity tier colours ──────────────────────────────────────────────────
-  rarityCommon: '#B0A8D9',
-  rarityUncommon: '#6BCB77',
-  rarityRare: '#4D96FF',
-  rarityEpic: '#FF6B6B',
-  rarityLegendary: '#FFD93D',
+  rarityCommon: '#C7B4E8',      // Lavender
+  rarityUncommon: '#88E0EF',    // Cyan-Teal
+  rarityRare: '#51E5FF',        // Vivid Cyan
+  rarityEpic: '#FF6B6B',        // Pink-Red
+  rarityLegendary: '#FFD23F',   // Vivid Yellow
 
   // ── Typography ───────────────────────────────────────────────────────────
-  textPrimary: '#F7F7F7',      // Off-White — main readable text
-  textSecondary: '#C4B8F0',    // Soft lavender — subtitles, labels
-  textDisabled: '#8C7ABF',     // Muted — disabled text
-  textOnDark: '#F7F7F7',
-  textGold: '#FFD93D',         // Vivid Yellow — coin / money text
+  textPrimary: '#FFFFFF',       // White — main readable text on purple bg
+  textSecondary: '#4A3572',     // Deep Purple — secondary text for contrast on light surfaces
+  textDisabled: '#B8A8D9',      // Muted lavender — disabled text
+  textOnDark: '#FFFFFF',
+  textOnYellow: '#4A3572',      // Deep Purple — text ON yellow buttons (Pop-Art contrast)
+  textGold: '#FFD23F',          // Yellow — coin / money highlights
 
   // ── Game states ──────────────────────────────────────────────────────────
-  win: '#6BCB77',              // Mint Green — win / share result
-  lose: '#FF6B6B',             // Hot Pink — eliminated
-  neutral: '#8C7ABF',
-  energy: '#4D96FF',
-  coin: '#FFD93D',
+  win: '#51E5FF',               // Cyan — win / share result
+  lose: '#FF6B6B',              // Pink-Red — eliminated
+  neutral: '#B8A8D9',
+  energy: '#88E0EF',
+  coin: '#FFD23F',
 
   // ── Dividers & borders ───────────────────────────────────────────────────
-  divider: 'rgba(247,247,247,0.12)',
-  borderCard: 'rgba(247,247,247,0.08)',
+  divider: 'rgba(74,53,114,0.15)',    // Deep purple tint divider (works on light bg)
+  borderCard: 'rgba(74,53,114,0.10)',
 
   // ── Overlays ─────────────────────────────────────────────────────────────
-  overlayLight: 'rgba(255,255,255,0.12)',
-  overlayDark: 'rgba(30,15,80,0.75)',
-  scrim: 'rgba(30,15,80,0.55)',
+  overlayLight: 'rgba(255,255,255,0.18)',
+  overlayDark: 'rgba(74,53,114,0.65)',
+  scrim: 'rgba(74,53,114,0.50)',
 
   // ── UI Layer Tokens ────────────────────────────────────────────────────────
-  // Tab Bar — sit clearly below content on a dark layer
-  tabBarBg: '#1A0F3C',           // Dark Navy Purple — tab bar bg (separate layer from screen)
-  tabBarBorder: 'rgba(255,255,255,0.08)',
+  // Tab Bar — slightly deeper purple to sit below content
+  tabBarBg: '#7B60B8',           // Deeper Purple — tab bar bg (visual layer separation)
+  tabBarBorder: 'rgba(255,255,255,0.15)',
 
-  // Glass cards — white 10% frost on purple bg (Glassmorphism)
-  cardGlass: 'rgba(255,255,255,0.10)',
-  cardGlassBorder: 'rgba(255,255,255,0.20)', // Slightly visible white border
+  // Glass cards — white frost on light purple bg (Glassmorphism)
+  cardGlass: 'rgba(255,255,255,0.22)',
+  cardGlassBorder: 'rgba(255,255,255,0.40)',
 
-  // Lavender border — subtle card framing on purple background
-  lavenderBorder: 'rgba(200,180,255,0.35)',
+  // Lavender border — card framing
+  lavenderBorder: 'rgba(199,180,232,0.60)',
 
-  // Challenge / high-urgency CTA — Vivid Orange (NOT red on purple)
-  challengeOrange: '#FF9500',
-  challengeOrangeGlow: 'rgba(255,149,0,0.40)',
-  challengeOrangeBg: 'rgba(255,149,0,0.14)',
+  // ── Shadow tokens — use these for card/button depth on light bg ───────────
+  // e.g. shadowColor: Colors.shadowCard, shadowOffset: {width:0,height:4}, shadowOpacity:1, shadowRadius:12
+  shadowCard: 'rgba(74,53,114,0.20)',    // Soft deep-purple shadow for cards
+  shadowButton: 'rgba(74,53,114,0.28)', // Slightly stronger for buttons
+  shadowYellow: 'rgba(255,210,63,0.45)', // Yellow glow-shadow for CTA button
+
+  // Challenge / high-urgency CTA — Orange
+  challengeOrange: '#FF9F1C',
+  challengeOrangeGlow: 'rgba(255,159,28,0.40)',
+  challengeOrangeBg: 'rgba(255,159,28,0.14)',
 
   // Soft gold for secondary highlights
-  softGold: '#FFE066',
+  softGold: '#FFD23F',
 } as const;
 
 export type ColorKey = keyof typeof Colors;

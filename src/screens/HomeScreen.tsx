@@ -1,52 +1,62 @@
 // ─── Heist — Dashboard (Home Screen) ────────────────────────────────────────
-// Avatar center, Global Vault top-right, Join Heist gold button, Nemesis bar
+// Greedy Gang design: purple bg, avatar center, stat cards, nemesis list,
+// gold JOIN HEIST CTA at bottom
 // ─────────────────────────────────────────────────────────────────────────────
 import React from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView, Dimensions,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  StatusBar,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { useGameStore } from '../store/gameStore';
 import type { NemesisRecord } from '@game/game';
-import {
-  SkiaGlowButton,
-  SkiaGlassCard,
-  SkiaBadge,
-  SkiaAvatarRing,
-} from '@components/skia';
 
-const CARD_FULL_WIDTH = Dimensions.get('window').width - Spacing.md * 2;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 type Props = { navigation: any };
+
+// ── Stat Card ─────────────────────────────────────────────────────────────────
+function StatCard({ value, label }: { value: string | number; label: string }) {
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
 
 // ── Nemesis Card ──────────────────────────────────────────────────────────────
 function NemesisCard({ nemesis, onRevenge }: { nemesis: NemesisRecord; onRevenge: () => void }) {
   return (
-    <TouchableOpacity style={styles.nemesisCard} onPress={onRevenge} activeOpacity={0.85}>
+    <View style={styles.nemesisCard}>
       <View style={styles.nemesisAvatarWrap}>
         <Text style={styles.nemesisAvatar}>{nemesis.avatar}</Text>
         {nemesis.isOnline && <View style={styles.onlineDot} />}
       </View>
-      <View style={styles.nemesisInfo}>
-        <Text style={styles.nemesisName}>{nemesis.playerName}</Text>
-        <Text style={styles.nemesisCount}>Stole from you {nemesis.stolenCount}x 🗡️</Text>
-      </View>
-      <View style={styles.revengeBtn}>
-        <Text style={styles.revengeBtnText}>Revenge</Text>
-      </View>
-    </TouchableOpacity>
+      <Text style={styles.nemesisId} numberOfLines={1}>{nemesis.playerId.slice(0, 5).toUpperCase()}</Text>
+      <TouchableOpacity style={styles.revengeBtn} onPress={onRevenge} activeOpacity={0.82}>
+        <Text style={styles.revengeBtnText}>REVENGE</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 export default function HomeScreen({ navigation }: Props) {
   const {
-    localPlayerName, localAvatar, vaultGold, matchMoney,
-    topNemesis, nemesisList, equippedRoleId, roles,
-    joinHeist, findNemesisMatch,
+    localPlayerName,
+    localAvatar,
+    vaultGold,
+    nemesisList,
+    roles,
+    joinHeist,
+    findNemesisMatch,
   } = useGameStore();
-
-  const equippedRole = roles.find((r) => r.id === equippedRoleId);
 
   const handleJoinHeist = () => {
     joinHeist();
@@ -60,176 +70,285 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Header ── */}
+        <View style={styles.headerRow}>
+          {/* Hamburger */}
+          <TouchableOpacity style={styles.menuBtn} activeOpacity={0.7}>
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+            <View style={styles.menuLine} />
+          </TouchableOpacity>
 
-          {/* ── Header Row ── */}
-          <View style={styles.headerRow}>
-            <Text style={styles.appTitle}>THE HEIST</Text>
-            {/* Vault Gold badge — Skia glass card */}
-            <SkiaGlassCard width={130} height={38} borderRadius={Radius.md} animateBorder={false}>
-              <View style={styles.vaultInner}>
-                <Text style={styles.vaultIcon}>🏦</Text>
-                <Text style={styles.vaultAmount}>{vaultGold.toLocaleString()}</Text>
-                <Text style={styles.vaultLabel}> GOLD</Text>
-              </View>
-            </SkiaGlassCard>
+          {/* Title */}
+          <Text style={styles.appTitle}>GREEDY GANG</Text>
+
+          {/* Coin badge */}
+          <View style={styles.coinBadge}>
+            <Text style={styles.coinIcon}>🪙</Text>
+            <Text style={styles.coinAmount}>{vaultGold.toLocaleString()}</Text>
           </View>
+        </View>
 
-          {/* ── Avatar Center ── */}
-          <View style={styles.avatarSection}>
-            <SkiaAvatarRing size={130} glowColor={Colors.goldGlow} pulseGlow>
-              <Text style={styles.avatarEmoji}>{localAvatar}</Text>
-            </SkiaAvatarRing>
-            <Text style={styles.playerName}>{localPlayerName}</Text>
-            {equippedRole && (
-              <SkiaBadge
-                label={`${equippedRole.icon}  ${equippedRole.name}`}
-                color={Colors.gold}
-                textColor={Colors.background}
-                paddingH={12}
-                paddingV={5}
-                borderRadius={Radius.sm}
-              />
+        {/* ── Player Name + Avatar ── */}
+        <View style={styles.avatarSection}>
+          <Text style={styles.playerName}>{localPlayerName}</Text>
+          {/* Big avatar emoji as placeholder for 3D character */}
+          <Text style={styles.avatarEmoji}>{localAvatar}</Text>
+        </View>
+
+        {/* ── Quick Stats ── */}
+        <View style={styles.statsRow}>
+          <StatCard value={vaultGold.toLocaleString()} label="VAULT GOLD" />
+          <StatCard value={nemesisList.length} label="NEMESES" />
+          <StatCard value={roles.filter((r) => r.isOwned).length} label="ROLES" />
+        </View>
+
+        {/* ── Nemesis Section ── */}
+        <View style={styles.nemesisSection}>
+          <Text style={styles.sectionTitle}>NEMESIS LIST</Text>
+          <View style={styles.nemesisRow}>
+            {nemesisList.length === 0 ? (
+              <Text style={styles.emptyText}>No nemeses yet. Go cause trouble! 😈</Text>
+            ) : (
+              nemesisList.slice(0, 3).map((n) => (
+                <NemesisCard
+                  key={n.playerId}
+                  nemesis={n}
+                  onRevenge={() => handleNemesisRevenge(n)}
+                />
+              ))
             )}
-            {matchMoney > 0 && (
-              <SkiaBadge
-                label={`💵 ${matchMoney} Match Money`}
-                color={Colors.shareGreen}
-                textColor="#fff"
-                paddingH={12}
-                paddingV={5}
-                borderRadius={Radius.sm}
-                animated={false}
-              />
-            )}
           </View>
+        </View>
 
-          {/* ── Quick Stats ── */}
-          <View style={styles.statsRow}>
-            <SkiaGlassCard width={100} height={64} borderRadius={Radius.md} style={styles.statGlass}>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>{vaultGold.toLocaleString()}</Text>
-                <Text style={styles.statLabel}>VAULT GOLD</Text>
-              </View>
-            </SkiaGlassCard>
-            <SkiaGlassCard width={100} height={64} borderRadius={Radius.md} style={styles.statGlass}>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>{nemesisList.length}</Text>
-                <Text style={styles.statLabel}>NEMESES</Text>
-              </View>
-            </SkiaGlassCard>
-            <SkiaGlassCard width={100} height={64} borderRadius={Radius.md} style={styles.statGlass}>
-              <View style={styles.statContent}>
-                <Text style={styles.statValue}>{roles.filter((r) => r.isOwned).length}</Text>
-                <Text style={styles.statLabel}>ROLES</Text>
-              </View>
-            </SkiaGlassCard>
-          </View>
-
-          {/* ── Join Heist Button ── */}
-          <View style={styles.joinWrap}>
-            <SkiaGlowButton
-              label="JOIN HEIST"
-              icon="🎯"
-              onPress={handleJoinHeist}
-              color={Colors.gold}
-              glowColor={Colors.goldGlow}
-              width={320}
-              height={60}
-            />
-          </View>
-
-          {/* ── Nemesis Section ── */}
-          {nemesisList.length > 0 && (
-            <View style={styles.nemesisSection}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>⚔️  NEMESIS LIST</Text>
-                {topNemesis?.isOnline && (
-                  <SkiaBadge label="ONLINE NOW" color={Colors.shareGreen} textColor="#fff" fontSize={9} paddingH={8} paddingV={3} />
-                )}
-              </View>
-              {topNemesis && (
-                <SkiaGlassCard
-                  width={CARD_FULL_WIDTH}
-                  height={64}
-                  borderRadius={Radius.md}
-                  glowColor={Colors.challengeOrangeGlow}
-                  style={styles.topNemesisCard}
-                  fillColor={Colors.challengeOrangeBg}
-                  borderColor={Colors.challengeOrange}
-                  animateBorder={false}
-                >
-                  <View style={styles.topNemesisInner}>
-                    <Text style={styles.topNemesisText}>
-                      ⚠️  {topNemesis.playerName} is online right now. Settle the score?
-                    </Text>
-                    <SkiaGlowButton
-                      label="⚡ Challenge Now"
-                      onPress={() => handleNemesisRevenge(topNemesis)}
-                      color={Colors.challengeOrange}
-                      glowColor={Colors.challengeOrangeGlow}
-                      width={160}
-                      height={36}
-                      fontSize={FontSize.sm}
-                    />
-                  </View>
-                </SkiaGlassCard>
-              )}
-              {nemesisList.slice(0, 3).map((n) => (
-                <NemesisCard key={n.playerId} nemesis={n} onRevenge={() => handleNemesisRevenge(n)} />
-              ))}
+        {/* ── Join Heist CTA ── */}
+        <View style={styles.joinWrap}>
+          <TouchableOpacity
+            style={styles.joinBtn}
+            onPress={handleJoinHeist}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.joinBtnText}>JOIN HEIST</Text>
+            <View style={styles.joinIcon}>
+              <Text style={styles.joinIconText}>🎯</Text>
             </View>
-          )}
+          </TouchableOpacity>
+        </View>
 
-          <View style={styles.scrollBottom} />
-        </ScrollView>
-      </SafeAreaView>
+        <View style={styles.scrollBottom} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: 'transparent' },
-  scroll: { paddingHorizontal: Spacing.md, paddingTop: Spacing.md },
+  safe: { flex: 1, backgroundColor: Colors.background },
+  scroll: { paddingHorizontal: Spacing.md, paddingTop: Spacing.sm },
 
-  // Header
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.lg },
-  appTitle: { fontSize: 22, fontWeight: FontWeight.bold as any, color: Colors.gold, letterSpacing: 3 },
-  vaultInner: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 8 },
-  vaultIcon: { fontSize: 16, marginRight: 4 },
-  vaultAmount: { fontSize: 14, fontWeight: FontWeight.bold as any, color: Colors.gold },
-  vaultLabel: { fontSize: 9, color: Colors.softGold, marginTop: 2 },
+  // ── Header ──────────────────────────────────────────────────────────────────
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  menuBtn: { padding: 6, gap: 4, justifyContent: 'center' },
+  menuLine: {
+    width: 22,
+    height: 2.5,
+    borderRadius: 2,
+    backgroundColor: Colors.textPrimary,
+    marginVertical: 2,
+  },
+  appTitle: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.black as any,
+    color: Colors.textPrimary,
+    letterSpacing: 2,
+    flex: 1,
+    textAlign: 'center',
+  },
+  coinBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.gold,
+    borderRadius: Radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    gap: 4,
+    shadowColor: Colors.shadowYellow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  coinIcon: { fontSize: 14 },
+  coinAmount: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textOnYellow,
+  },
 
-  // Avatar
-  avatarSection: { alignItems: 'center', marginVertical: Spacing.xl, gap: 10 },
-  avatarEmoji: { fontSize: 56 },
-  playerName: { fontSize: FontSize.xl, fontWeight: FontWeight.bold as any, color: Colors.textPrimary },
+  // ── Avatar ──────────────────────────────────────────────────────────────────
+  avatarSection: {
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  playerName: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.sm,
+  },
+  avatarEmoji: {
+    fontSize: 110,
+    lineHeight: 130,
+  },
 
-  // Stats
-  statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xl },
-  statGlass: {},
-  statContent: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  statValue: { fontSize: FontSize.lg, fontWeight: FontWeight.bold as any, color: Colors.gold },
-  statLabel: { fontSize: 9, color: Colors.softGold, letterSpacing: 1.2, marginTop: 2 },
+  // ── Stats ────────────────────────────────────────────────────────────────────
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: Radius.md,
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: Colors.shadowCard,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statValue: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.black as any,
+    color: Colors.textSecondary,
+  },
+  statLabel: {
+    fontSize: 9,
+    fontWeight: FontWeight.semiBold as any,
+    color: Colors.textSecondary,
+    letterSpacing: 1,
+    marginTop: 3,
+    opacity: 0.7,
+  },
 
-  // Join Heist
-  joinWrap: { alignItems: 'center', marginBottom: Spacing.xl },
+  // ── Nemesis ──────────────────────────────────────────────────────────────────
+  nemesisSection: { marginBottom: Spacing.lg },
+  sectionTitle: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textPrimary,
+    letterSpacing: 1.5,
+    marginBottom: Spacing.sm,
+  },
+  nemesisRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    flexWrap: 'wrap',
+  },
+  nemesisCard: {
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.30)',
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    minWidth: (SCREEN_WIDTH - Spacing.md * 2 - Spacing.sm * 2) / 3,
+    flex: 1,
+    gap: 8,
+  },
+  nemesisAvatarWrap: { position: 'relative' },
+  nemesisAvatar: { fontSize: 36 },
+  onlineDot: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.shareGreen,
+    borderWidth: 1.5,
+    borderColor: Colors.background,
+  },
+  nemesisId: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.semiBold as any,
+    color: Colors.textPrimary,
+    opacity: 0.8,
+  },
+  revengeBtn: {
+    backgroundColor: Colors.revengeOrange,
+    borderRadius: Radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    shadowColor: Colors.revengeOrangeGlow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  revengeBtnText: {
+    fontSize: 10,
+    fontWeight: FontWeight.bold as any,
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  emptyText: {
+    fontSize: FontSize.sm,
+    color: Colors.textPrimary,
+    opacity: 0.6,
+    fontStyle: 'italic',
+  },
 
-  // Nemesis
-  nemesisSection: { marginBottom: Spacing.md },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.sm },
-  sectionTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold as any, color: Colors.softGold, flex: 1 },
-  topNemesisCard: { marginBottom: Spacing.sm, alignSelf: 'stretch' },
-  topNemesisInner: { flex: 1, padding: Spacing.md, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  topNemesisText: { flex: 1, fontSize: FontSize.sm, color: Colors.softGold },
-  nemesisCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.cardGlass, borderRadius: Radius.md, padding: Spacing.sm, marginBottom: 8, borderWidth: 1, borderColor: Colors.lavenderBorder },
-  nemesisAvatarWrap: { position: 'relative', marginRight: Spacing.sm },
-  nemesisAvatar: { fontSize: 32 },
-  onlineDot: { position: 'absolute', bottom: 0, right: 0, width: 10, height: 10, borderRadius: 5, backgroundColor: Colors.shareGreen, borderWidth: 1.5, borderColor: Colors.tabBarBg },
-  nemesisInfo: { flex: 1 },
-  nemesisName: { fontSize: FontSize.md, fontWeight: FontWeight.bold as any, color: Colors.textPrimary },
-  nemesisCount: { fontSize: FontSize.xs, color: Colors.softGold, marginTop: 2 },
-  revengeBtn: { backgroundColor: Colors.challengeOrangeBg, borderRadius: Radius.sm, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.challengeOrange },
-  revengeBtnText: { fontSize: FontSize.xs, color: Colors.challengeOrange, fontWeight: FontWeight.bold as any },
+  // ── Join Heist ───────────────────────────────────────────────────────────────
+  joinWrap: { alignItems: 'center', marginBottom: Spacing.md },
+  joinBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.gold,
+    borderRadius: Radius.full,
+    width: SCREEN_WIDTH - Spacing.md * 2,
+    height: 58,
+    justifyContent: 'center',
+    shadowColor: Colors.shadowYellow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  joinBtnText: {
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.black as any,
+    color: Colors.textOnYellow,
+    letterSpacing: 2,
+    flex: 1,
+    textAlign: 'center',
+    marginLeft: 44, // offset so text stays visually centered with icon
+  },
+  joinIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: Colors.textSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  joinIconText: { fontSize: 18 },
+
   scrollBottom: { height: 24 },
 });

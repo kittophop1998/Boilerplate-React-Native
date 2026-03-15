@@ -1,5 +1,5 @@
 // ─── Heist — Lobby Screen ────────────────────────────────────────────────────
-// 4-slot grid · Role hidden until game ends · Item equip tray before match
+// Design: Purple bg · White cards · Round avatar · READY pill · Center hub
 // ─────────────────────────────────────────────────────────────────────────────
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -12,7 +12,9 @@ import { useGameStore } from '../store/gameStore';
 import type { HeistPlayer } from '@game/game';
 
 const { width: W } = Dimensions.get('window');
-const SLOT_SIZE = W * 0.38;
+const CARD_W = (W - Spacing.md * 2 - Spacing.sm * 4) / 2;
+const CARD_H = CARD_W * 1.25;
+const AVATAR_SIZE = CARD_W * 0.52;
 
 type Props = { navigation: any };
 
@@ -25,96 +27,50 @@ function PlayerSlot({
   index?: number;
   onTransfer?: (player: HeistPlayer) => void;
 }) {
-  const readyAnim = useRef(new Animated.Value(0)).current;
-  const flipAnim = useRef(new Animated.Value(0)).current;
-  const [flipped, setFlipped] = useState(false);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     if (player.isReady) {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(readyAnim, { toValue: 1, duration: 700, useNativeDriver: false }),
-          Animated.timing(readyAnim, { toValue: 0.3, duration: 700, useNativeDriver: false }),
+          Animated.timing(pulseAnim, { toValue: 1.04, duration: 600, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
         ]),
       ).start();
     } else {
-      readyAnim.setValue(0);
+      pulseAnim.setValue(1);
     }
-  }, [player.isReady, readyAnim]);
-
-  // Only local player can flip to see their own role
-  const canFlip = player.isLocal;
-
-  const handleFlip = () => {
-    if (!canFlip) return;
-    Animated.spring(flipAnim, {
-      toValue: flipped ? 0 : 1,
-      useNativeDriver: false,
-    }).start();
-    setFlipped(!flipped);
-  };
-
-  const frontRotate = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
-  const backRotate = flipAnim.interpolate({ inputRange: [0, 1], outputRange: ['180deg', '360deg'] });
-  const readyBorder = readyAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['rgba(0,230,118,0)', 'rgba(0,230,118,1)'],
-  });
+  }, [player.isReady, pulseAnim]);
 
   return (
-    <View style={styles.slotWrapper}>
-      {/* Role Card — flip only for local player */}
-      <TouchableOpacity onPress={handleFlip} activeOpacity={canFlip ? 0.9 : 1}>
-        {/* Front — avatar */}
-        <Animated.View
-          style={[
-            styles.slot,
-            styles.cardFront,
-            { borderColor: player.isReady ? readyBorder : Colors.divider },
-            { transform: [{ perspective: 800 }, { rotateY: frontRotate }] },
-          ]}
-        >
-          <Text style={styles.slotAvatar}>{player.avatar}</Text>
-          <Text style={styles.slotName} numberOfLines={1}>{player.name}</Text>
-          {/* Hint — only local player can tap */}
-          {canFlip ? (
-            <Text style={styles.slotRoleHint}>👁 Tap to see your role</Text>
-          ) : (
-            <Text style={styles.slotRoleHiddenHint}>🔒 Role hidden</Text>
-          )}
-          {player.isReady && (
-            <View style={styles.readyBadge}>
-              <Text style={styles.readyBadgeText}>✓ READY</Text>
-            </View>
-          )}
-        </Animated.View>
+    <Animated.View
+      style={[
+        styles.card,
+        player.isReady && styles.cardReady,
+        { transform: [{ scale: pulseAnim }] },
+      ]}
+    >
+      {/* Avatar circle */}
+      <View style={styles.avatarCircle}>
+        <Text style={styles.avatarEmoji}>{player.avatar}</Text>
+      </View>
 
-        {/* Back — role (local player only sees real role; others see ❓) */}
-        <Animated.View
-          style={[
-            styles.slot,
-            styles.slotBack,
-            styles.cardBack,
-            !canFlip && styles.slotBackHidden,
-            { transform: [{ perspective: 800 }, { rotateY: backRotate }] },
-          ]}
-        >
-          {canFlip ? (
-            <>
-              <Text style={styles.slotRoleIcon}>{player.roleIcon}</Text>
-              <Text style={styles.slotRoleName}>{player.roleName}</Text>
-              <Text style={styles.youLabel}>YOUR ROLE</Text>
-              <Text style={styles.roleSecretNote}>🔒 Hidden from others</Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.slotRoleIcon}>❓</Text>
-              <Text style={styles.slotRoleName}>???</Text>
-              <Text style={styles.roleRevealNote}>Revealed after match</Text>
-            </>
-          )}
-        </Animated.View>
-      </TouchableOpacity>
+      {/* Name */}
+      <Text style={styles.playerName} numberOfLines={1}>{player.name}</Text>
+
+      {/* Role status */}
+      <Text style={styles.roleHidden}>Role hidden</Text>
+
+      {/* READY badge */}
+      {player.isReady ? (
+        <View style={styles.readyPill}>
+          <Text style={styles.readyPillText}>READY</Text>
+        </View>
+      ) : (
+        <View style={styles.waitingPill}>
+          <Text style={styles.waitingPillText}>Waiting...</Text>
+        </View>
+      )}
 
       {/* Transfer button — only for non-local players */}
       {!player.isLocal && onTransfer && (
@@ -125,7 +81,28 @@ function PlayerSlot({
           <Text style={styles.transferBtnText}>💸</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </Animated.View>
+  );
+}
+
+// ── Empty Slot ────────────────────────────────────────────────────────────────
+function EmptySlot() {
+  const dotAnim = useRef(new Animated.Value(0.4)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(dotAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(dotAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+      ]),
+    ).start();
+  }, [dotAnim]);
+  return (
+    <Animated.View style={[styles.card, styles.cardEmpty, { opacity: dotAnim }]}>
+      <View style={[styles.avatarCircle, styles.avatarCircleEmpty]}>
+        <Text style={styles.avatarEmptyIcon}>?</Text>
+      </View>
+      <Text style={styles.emptySlotText}>Waiting...</Text>
+    </Animated.View>
   );
 }
 
@@ -136,6 +113,16 @@ export default function LobbyScreen({ navigation }: Props) {
   } = useGameStore();
   const [_transferTarget, setTransferTarget] = useState<HeistPlayer | null>(null);
   const [itemTrayOpen, setItemTrayOpen] = useState(false);
+  const hubAnim = useRef(new Animated.Value(0)).current;
+
+  // Hub spin animation
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(hubAnim, { toValue: 1, duration: 4000, useNativeDriver: true }),
+    ).start();
+  }, [hubAnim]);
+
+  const hubRotate = hubAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
   // Navigate when action phase starts
   useEffect(() => {
@@ -144,14 +131,14 @@ export default function LobbyScreen({ navigation }: Props) {
     }
   }, [roomPhase, navigation]);
 
-  // Only show players who have actually joined
-  const slots = lobbyPlayers.slice(0, 4);
+  // Build 4 slots (fill empties)
+  const slots = Array.from({ length: 4 }, (_, i) => lobbyPlayers[i] ?? null);
 
   const allReady = lobbyPlayers.length === 4 && lobbyPlayers.every((p) => p.isReady);
   const localPlayer = lobbyPlayers.find((p) => p.isLocal);
   const localReady = localPlayer?.isReady ?? false;
 
-  // Items that can be used in-match (in-match item types)
+  // Items that can be used in-match
   const usableItems = inventory.filter((i) =>
     i.type === 'trap' || i.type === 'smoke_bomb' || i.type === 'bug_device' || i.type === 'decoy',
   );
@@ -161,47 +148,82 @@ export default function LobbyScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
 
-      {/* Header */}
+      {/* ── Header ──────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => { leaveRoom(); navigation.goBack(); }}>
-          <Text style={styles.backBtn}>← Leave</Text>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => { leaveRoom(); navigation.goBack(); }}
+        >
+          <Text style={styles.backBtnText}>{'<'}</Text>
         </TouchableOpacity>
+
         <Text style={styles.title}>
-          {isSearching ? '🔍 Finding Players...' : '🔒 The Vault Room'}
+          {isSearching ? 'Finding Players...' : 'The Vault Room'}
         </Text>
-        <Text style={styles.playerCount}>{lobbyPlayers.length}/4</Text>
+
+        {/* Lock icon + count */}
+        <View style={styles.countBadge}>
+          <Text style={styles.countLockIcon}>🔒</Text>
+          <Text style={styles.countText}>{lobbyPlayers.length}/4</Text>
+        </View>
       </View>
 
-      {/* Countdown overlay */}
+      {/* ── Countdown overlay ──────────────────────────────────── */}
       {countdown !== null && (
         <View style={styles.countdownOverlay}>
           <Text style={styles.countdownText}>{countdown}</Text>
         </View>
       )}
 
-      {/* 4-slot grid */}
-      <View style={styles.slotsGrid}>
-        {slots.map((player, i) => (
-          <PlayerSlot
-            key={player.id}
-            player={player}
-            index={i}
-            onTransfer={(p) => {
-              setTransferTarget(p);
-              navigation.navigate('Transfer', { targetPlayer: p });
-            }}
-          />
-        ))}
+      {/* ── 4-slot grid + center hub ───────────────────────────── */}
+      <View style={styles.gridContainer}>
+        {/* Row 1 */}
+        <View style={styles.row}>
+          {slots[0] ? (
+            <PlayerSlot
+              player={slots[0]}
+              index={0}
+              onTransfer={(p) => { setTransferTarget(p); navigation.navigate('Transfer', { targetPlayer: p }); }}
+            />
+          ) : <EmptySlot />}
+
+          {slots[1] ? (
+            <PlayerSlot
+              player={slots[1]}
+              index={1}
+              onTransfer={(p) => { setTransferTarget(p); navigation.navigate('Transfer', { targetPlayer: p }); }}
+            />
+          ) : <EmptySlot />}
+        </View>
+
+        {/* Center Hub */}
+        <View style={styles.hubRow}>
+          <Animated.View style={[styles.hub, { transform: [{ rotate: hubRotate }] }]}>
+            <View style={styles.hubInner} />
+          </Animated.View>
+        </View>
+
+        {/* Row 2 */}
+        <View style={styles.row}>
+          {slots[2] ? (
+            <PlayerSlot
+              player={slots[2]}
+              index={2}
+              onTransfer={(p) => { setTransferTarget(p); navigation.navigate('Transfer', { targetPlayer: p }); }}
+            />
+          ) : <EmptySlot />}
+
+          {slots[3] ? (
+            <PlayerSlot
+              player={slots[3]}
+              index={3}
+              onTransfer={(p) => { setTransferTarget(p); navigation.navigate('Transfer', { targetPlayer: p }); }}
+            />
+          ) : <EmptySlot />}
+        </View>
       </View>
 
-      {/* Info banner */}
-      <View style={styles.roleCardBanner}>
-        <Text style={styles.roleCardBannerText}>
-          👁 Tap YOUR card to peek your role &nbsp;·&nbsp; � Others stay hidden until reveal
-        </Text>
-      </View>
-
-      {/* ── Item Tray ────────────────────────────────────────────── */}
+      {/* ── Item Tray ───────────────────────────────────────────── */}
       <View style={styles.itemTray}>
         <TouchableOpacity
           style={styles.itemTrayHeader}
@@ -216,7 +238,7 @@ export default function LobbyScreen({ navigation }: Props) {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.noItemText}>None equipped</Text>
+              <Text style={styles.noItemLabel}>None equipped</Text>
             )}
           </View>
           <Text style={styles.itemTrayToggle}>{itemTrayOpen ? '▲' : '▼'}</Text>
@@ -229,7 +251,7 @@ export default function LobbyScreen({ navigation }: Props) {
             contentContainerStyle={styles.itemScroll}
           >
             {usableItems.length === 0 ? (
-              <Text style={styles.noItemText}>No usable items. Buy from Shop!</Text>
+              <Text style={styles.noItemLabel}>No usable items. Buy from Shop!</Text>
             ) : (
               usableItems.map((item) => (
                 <TouchableOpacity
@@ -251,7 +273,7 @@ export default function LobbyScreen({ navigation }: Props) {
         )}
       </View>
 
-      {/* Ready Button */}
+      {/* ── Ready Button ────────────────────────────────────────── */}
       <View style={styles.footer}>
         {allReady ? (
           <View style={styles.allReadyBanner}>
@@ -263,7 +285,7 @@ export default function LobbyScreen({ navigation }: Props) {
             onPress={setReady}
             disabled={localReady}
           >
-            <Text style={styles.readyBtnText}>
+            <Text style={[styles.readyBtnText, localReady && styles.readyBtnTextDone]}>
               {localReady ? '✓ READY' : 'TAP TO READY UP'}
             </Text>
           </TouchableOpacity>
@@ -276,77 +298,329 @@ export default function LobbyScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
 
-  // Header
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderBottomWidth: 1, borderBottomColor: Colors.divider },
-  backBtn: { color: Colors.textSecondary, fontSize: FontSize.sm, minWidth: 60 },
-  title: { flex: 1, textAlign: 'center', color: Colors.textPrimary, fontWeight: FontWeight.bold as any, fontSize: FontSize.md },
-  playerCount: { color: Colors.gold, fontWeight: FontWeight.bold as any, fontSize: FontSize.md, minWidth: 60, textAlign: 'right' },
-
-  // Countdown
-  countdownOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', zIndex: 99, backgroundColor: 'rgba(0,0,0,0.7)' },
-  countdownText: { fontSize: 120, fontWeight: FontWeight.bold as any, color: Colors.gold, textShadowColor: Colors.gold, textShadowRadius: 30, textShadowOffset: { width: 0, height: 0 } },
-
-  // Slots
-  slotsGrid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', padding: Spacing.md, alignContent: 'center' },
-  slotWrapper: { width: '50%', padding: 8, alignItems: 'center' },
-  slot: {
-    width: SLOT_SIZE,
-    height: SLOT_SIZE * 1.35,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.cardBg,
-    borderWidth: 2,
-    borderColor: Colors.divider,
+  // ── Header ──────────────────────────────────────────────────────────────
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 2,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.sm,
   },
-  slotBack: { backgroundColor: '#1a1200', borderColor: Colors.gold, position: 'absolute', top: 0, left: 0 },
-  cardFront: { backfaceVisibility: 'hidden' } as any,
-  cardBack: { backfaceVisibility: 'hidden' } as any,
+  backBtnText: {
+    color: Colors.textPrimary,
+    fontSize: FontSize.lg,
+    fontWeight: FontWeight.bold as any,
+    lineHeight: 20,
+  },
+  title: {
+    flex: 1,
+    textAlign: 'center',
+    color: Colors.textPrimary,
+    fontWeight: FontWeight.bold as any,
+    fontSize: FontSize.md,
+    letterSpacing: 0.3,
+  },
+  countBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderRadius: Radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  countLockIcon: { fontSize: 13 },
+  countText: {
+    color: Colors.gold,
+    fontWeight: FontWeight.bold as any,
+    fontSize: FontSize.sm,
+  },
 
-  slotAvatar: { fontSize: 40, marginBottom: 6 },
-  slotName: { fontSize: FontSize.sm, color: Colors.textPrimary, fontWeight: FontWeight.semiBold as any, textAlign: 'center' },
-  slotRoleHint: { fontSize: 9, color: Colors.textDisabled, marginTop: 4 },
-  slotRoleHiddenHint: { fontSize: 9, color: Colors.stealRed, marginTop: 4, letterSpacing: 0.5 },
-  readyBadge: { position: 'absolute', bottom: 8, backgroundColor: 'rgba(0,230,118,0.2)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: Colors.shareGreen },
-  readyBadgeText: { fontSize: 9, color: Colors.shareGreen, fontWeight: FontWeight.bold as any },
+  // ── Countdown ───────────────────────────────────────────────────────────
+  countdownOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center', justifyContent: 'center',
+    zIndex: 99, backgroundColor: 'rgba(74,53,114,0.80)',
+  },
+  countdownText: {
+    fontSize: 120,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.gold,
+    textShadowColor: Colors.goldGlow,
+    textShadowRadius: 30,
+    textShadowOffset: { width: 0, height: 0 },
+  },
 
-  slotRoleIcon: { fontSize: 36, marginBottom: 6 },
-  slotRoleName: { fontSize: FontSize.sm, color: Colors.gold, fontWeight: FontWeight.bold as any, textAlign: 'center' },
-  slotBackHidden: { backgroundColor: '#1a0a0a', borderColor: Colors.stealRed },
-  youLabel: { marginTop: 6, fontSize: 10, color: Colors.shieldBlue, fontWeight: FontWeight.bold as any, letterSpacing: 1 },
-  roleSecretNote: { fontSize: 9, color: Colors.stealRed, marginTop: 4 },
-  roleRevealNote: { fontSize: 9, color: Colors.textDisabled, marginTop: 4 },
+  // ── Grid ────────────────────────────────────────────────────────────────
+  gridContainer: {
+    flex: 1,
+    paddingHorizontal: Spacing.md,
+    justifyContent: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  hubRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: -10,
+    zIndex: 10,
+  },
+  hub: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#5B8DEF',
+    borderWidth: 4,
+    borderColor: '#7AABFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#5B8DEF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  hubInner: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#A8C8FF',
+    opacity: 0.7,
+  },
 
-  transferBtn: { marginTop: 6, backgroundColor: 'rgba(255,215,0,0.15)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5, borderWidth: 1, borderColor: Colors.gold },
-  transferBtnText: { fontSize: 16 },
+  // ── Player Card ─────────────────────────────────────────────────────────
+  card: {
+    flex: 1,
+    minHeight: CARD_H,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    shadowColor: 'rgba(74,53,114,0.25)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 6,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  cardReady: {
+    borderColor: Colors.shareGreen,
+    shadowColor: Colors.shareGreen,
+    shadowOpacity: 0.4,
+  },
+  cardEmpty: {
+    borderColor: 'rgba(155,126,213,0.20)',
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
 
-  // Banner
-  roleCardBanner: { marginHorizontal: Spacing.md, marginBottom: Spacing.sm, backgroundColor: Colors.surfaceElevated, borderRadius: Radius.sm, padding: 8, alignItems: 'center' },
-  roleCardBannerText: { fontSize: 11, color: Colors.textSecondary },
+  // ── Avatar ──────────────────────────────────────────────────────────────
+  avatarCircle: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+    shadowColor: 'rgba(74,53,114,0.30)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  avatarCircleEmpty: {
+    backgroundColor: 'rgba(155,126,213,0.30)',
+  },
+  avatarEmoji: { fontSize: AVATAR_SIZE * 0.52 },
+  avatarEmptyIcon: {
+    fontSize: AVATAR_SIZE * 0.42,
+    color: 'rgba(155,126,213,0.60)',
+    fontWeight: FontWeight.bold as any,
+  },
 
-  // Item Tray
-  itemTray: { marginHorizontal: Spacing.md, marginBottom: Spacing.sm, backgroundColor: Colors.surface, borderRadius: Radius.md, borderWidth: 1, borderColor: Colors.divider, overflow: 'hidden' },
-  itemTrayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.md, paddingVertical: 10 },
+  // ── Card text ───────────────────────────────────────────────────────────
+  playerName: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.bold as any,
+    color: '#2D1B69',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  roleHidden: {
+    fontSize: FontSize.xs,
+    color: '#8A7AAF',
+    marginBottom: Spacing.sm,
+  },
+  emptySlotText: {
+    fontSize: FontSize.xs,
+    color: 'rgba(155,126,213,0.70)',
+    fontStyle: 'italic',
+  },
+
+  // ── Ready / Waiting pill ────────────────────────────────────────────────
+  readyPill: {
+    backgroundColor: Colors.shareGreen,
+    borderRadius: Radius.full,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  readyPillText: {
+    fontSize: 11,
+    fontWeight: FontWeight.bold as any,
+    color: '#0D2B2B',
+    letterSpacing: 0.5,
+  },
+  waitingPill: {
+    backgroundColor: 'rgba(155,126,213,0.18)',
+    borderRadius: Radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(155,126,213,0.35)',
+  },
+  waitingPillText: {
+    fontSize: 11,
+    color: '#8A7AAF',
+    fontStyle: 'italic',
+  },
+
+  // ── Transfer button ─────────────────────────────────────────────────────
+  transferBtn: {
+    marginTop: 8,
+    backgroundColor: Colors.goldLight,
+    borderRadius: Radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: Colors.gold,
+  },
+  transferBtnText: { fontSize: 14 },
+
+  // ── Item Tray ───────────────────────────────────────────────────────────
+  itemTray: {
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    overflow: 'hidden',
+  },
+  itemTrayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 10,
+  },
   itemTrayLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  itemTrayTitle: { fontSize: FontSize.xs, fontWeight: FontWeight.bold as any, color: Colors.textPrimary, letterSpacing: 0.5 },
-  itemTrayToggle: { fontSize: FontSize.xs, color: Colors.textSecondary },
-  equippedChip: { backgroundColor: 'rgba(0,230,118,0.15)', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: Colors.shareGreen },
-  equippedChipText: { fontSize: 10, color: Colors.shareGreen, fontWeight: FontWeight.bold as any },
-  noItemText: { fontSize: FontSize.xs, color: Colors.textDisabled, paddingHorizontal: Spacing.md, paddingVertical: 8 },
+  itemTrayTitle: {
+    fontSize: FontSize.xs,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textPrimary,
+    letterSpacing: 0.5,
+  },
+  itemTrayToggle: { fontSize: FontSize.xs, color: Colors.textPrimary },
+  equippedChip: {
+    backgroundColor: 'rgba(81,229,255,0.20)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: Colors.shareGreen,
+  },
+  equippedChipText: {
+    fontSize: 10,
+    color: Colors.shareGreen,
+    fontWeight: FontWeight.bold as any,
+  },
+  noItemLabel: {
+    fontSize: FontSize.xs,
+    color: 'rgba(255,255,255,0.55)',
+    paddingVertical: 2,
+  },
   itemScroll: { padding: Spacing.sm, gap: 8 },
-  itemCard: { width: 80, backgroundColor: Colors.cardBg, borderRadius: Radius.md, padding: 8, alignItems: 'center', borderWidth: 1, borderColor: Colors.divider },
-  itemCardEquipped: { borderColor: Colors.shareGreen, backgroundColor: 'rgba(0,230,118,0.08)' },
+  itemCard: {
+    width: 80,
+    backgroundColor: 'rgba(255,255,255,0.20)',
+    borderRadius: Radius.md,
+    padding: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.30)',
+  },
+  itemCardEquipped: {
+    borderColor: Colors.shareGreen,
+    backgroundColor: 'rgba(81,229,255,0.12)',
+  },
   itemCardIcon: { fontSize: 28, marginBottom: 4 },
-  itemCardName: { fontSize: 9, color: Colors.textSecondary, textAlign: 'center', lineHeight: 13 },
-  itemEquippedBadge: { marginTop: 4, backgroundColor: Colors.shareGreen, borderRadius: 4, paddingHorizontal: 4, paddingVertical: 1 },
-  itemEquippedBadgeText: { fontSize: 8, color: Colors.background, fontWeight: FontWeight.bold as any },
+  itemCardName: {
+    fontSize: 9,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    lineHeight: 13,
+  },
+  itemEquippedBadge: {
+    marginTop: 4,
+    backgroundColor: Colors.shareGreen,
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+  },
+  itemEquippedBadgeText: {
+    fontSize: 8,
+    color: '#0D2B2B',
+    fontWeight: FontWeight.bold as any,
+  },
 
-  // Footer
-  footer: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xl },
-  readyBtn: { backgroundColor: Colors.gold, borderRadius: Radius.md, paddingVertical: 16, alignItems: 'center', shadowColor: Colors.gold, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 12, elevation: 8 },
-  readyBtnDone: { backgroundColor: Colors.shareGreen, shadowColor: Colors.shareGreen },
-  readyBtnText: { fontSize: FontSize.lg, fontWeight: FontWeight.bold as any, color: Colors.background, letterSpacing: 2 },
-  allReadyBanner: { backgroundColor: 'rgba(0,230,118,0.15)', borderRadius: Radius.md, padding: 16, alignItems: 'center', borderWidth: 1, borderColor: Colors.shareGreen },
-  allReadyText: { fontSize: FontSize.md, color: Colors.shareGreen, fontWeight: FontWeight.bold as any },
+  // ── Footer ──────────────────────────────────────────────────────────────
+  footer: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.lg },
+  readyBtn: {
+    backgroundColor: Colors.gold,
+    borderRadius: Radius.lg,
+    paddingVertical: 16,
+    alignItems: 'center',
+    shadowColor: Colors.goldGlow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  readyBtnDone: {
+    backgroundColor: Colors.shareGreen,
+    shadowColor: Colors.shareGreen,
+  },
+  readyBtnText: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textOnYellow,
+    letterSpacing: 2,
+  },
+  readyBtnTextDone: { color: '#0D2B2B' },
+  allReadyBanner: {
+    backgroundColor: 'rgba(81,229,255,0.15)',
+    borderRadius: Radius.lg,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.shareGreen,
+  },
+  allReadyText: {
+    fontSize: FontSize.md,
+    color: Colors.shareGreen,
+    fontWeight: FontWeight.bold as any,
+  },
 });

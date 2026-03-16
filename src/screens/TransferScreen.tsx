@@ -162,7 +162,7 @@ export default function TransferScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} hidden={true} />
 
       {/* Header */}
       <View style={styles.header}>

@@ -1,6 +1,6 @@
 // ─── SettingsScreen — Stamp Duel ──────────────────────────────────────────────
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Alert, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { loadPlayer, savePlayer, DEFAULT_PLAYER } from '@services/stampService';
@@ -11,9 +11,9 @@ const CARD_W = Dimensions.get('window').width - Spacing.md * 2;
 
 const VERSION = '1.0.0 (Stamp Duel)';
 
-type Props = { onLogout?: () => void };
+type Props = { onLogout?: () => void; navigation?: any };
 
-export default function SettingsScreen({ onLogout }: Props) {
+export default function SettingsScreen({ onLogout, navigation }: Props) {
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
 
   useEffect(() => { loadPlayer().then(setPlayer); }, []);
@@ -43,6 +43,9 @@ export default function SettingsScreen({ onLogout }: Props) {
 
           {/* ── Header ─────────────────────────────────────────────────────── */}
           <View style={styles.header}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation?.goBack()} activeOpacity={0.8}>
+              <Text style={styles.backBtnText}>←</Text>
+            </TouchableOpacity>
             <Text style={styles.headerTitle}>Settings</Text>
             <Text style={styles.headerSub}>Stamp Duel · {VERSION}</Text>
           </View>
@@ -90,6 +93,55 @@ export default function SettingsScreen({ onLogout }: Props) {
               </View>
             </SkiaGlassCard>
           )}
+
+          {/* ── How to Play ─────────────────────────────────────────────────── */}
+          <SkiaGlassCard
+            width={CARD_W}
+            borderRadius={Radius.lg}
+            animateBorder={false}
+            style={styles.cardMargin}
+          >
+            <View style={styles.cardInner}>
+              <Text style={styles.cardLabel}>HOW TO PLAY</Text>
+
+              <HowToPlayStep
+                step="1"
+                emoji="🃏"
+                title="Collect Stamps"
+                desc="Play Gacha to collect stamps of different rarities — from Common to Legendary. Each stamp has unique power stats."
+              />
+              <HowToPlayStep
+                step="2"
+                emoji="⚔️"
+                title="Build Your Deck"
+                desc="Pick up to 5 stamps to form your battle deck. Higher rarity stamps deal more damage and have special abilities."
+              />
+              <HowToPlayStep
+                step="3"
+                emoji="🏟️"
+                title="Enter the Lobby"
+                desc="Join the Lobby to find opponents. You can challenge friends or get matched with players of similar level."
+              />
+              <HowToPlayStep
+                step="4"
+                emoji="🎮"
+                title="Battle in Duels"
+                desc="Take turns playing stamps against your opponent. Each stamp's power is compared — the highest wins the round!"
+              />
+              <HowToPlayStep
+                step="5"
+                emoji="🏆"
+                title="Win & Earn Rewards"
+                desc="Win duels to earn Coins, Gems, and XP. Level up to unlock new Gacha pulls and exclusive stamp skins."
+              />
+              <HowToPlayStep
+                step="6"
+                emoji="🔄"
+                title="Trade & Transfer"
+                desc="Trade duplicate stamps with other players or transfer stamps to friends using the Trade & Transfer screens."
+              />
+            </View>
+          </SkiaGlassCard>
 
           {/* ── About ───────────────────────────────────────────────────────── */}
           <SkiaGlassCard
@@ -155,6 +207,45 @@ const resPillStyles = StyleSheet.create({
   label: { fontSize: FontSize.xs, color: Colors.textSecondary },
 });
 
+function HowToPlayStep({ step, emoji, title, desc }: { step: string; emoji: string; title: string; desc: string }) {
+  return (
+    <View style={howToPlayStyles.row}>
+      <View style={howToPlayStyles.stepBadge}>
+        <Text style={howToPlayStyles.stepNum}>{step}</Text>
+      </View>
+      <Text style={howToPlayStyles.emoji}>{emoji}</Text>
+      <View style={howToPlayStyles.textWrap}>
+        <Text style={howToPlayStyles.title}>{title}</Text>
+        <Text style={howToPlayStyles.desc}>{desc}</Text>
+      </View>
+    </View>
+  );
+}
+const howToPlayStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: Spacing.sm,
+    marginTop: 1,
+  },
+  stepNum: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.textPrimary },
+  emoji: { fontSize: 18, marginRight: Spacing.sm, marginTop: 1 },
+  textWrap: { flex: 1 },
+  title: { fontSize: FontSize.sm, fontWeight: FontWeight.bold, color: Colors.textPrimary, marginBottom: 2 },
+  desc: { fontSize: FontSize.xs, color: Colors.textSecondary, lineHeight: 17 },
+});
+
 function SettingRow({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
     <View style={settingRowStyles.row}>
@@ -177,6 +268,16 @@ const styles = StyleSheet.create({
   header:      { marginBottom: Spacing.lg },
   headerTitle: { fontSize: FontSize.xxl, fontWeight: FontWeight.bold, color: Colors.textPrimary },
   headerSub:   { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: Spacing.sm,
+  },
+  backBtnText: { color: Colors.textPrimary, fontSize: FontSize.lg, fontWeight: FontWeight.bold, lineHeight: 20 },
 
   cardMargin: { marginBottom: Spacing.md },
   cardInner:  { flex: 1, padding: Spacing.md },

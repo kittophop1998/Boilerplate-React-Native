@@ -1,213 +1,267 @@
 // ─── Heist — Reveal Screen (The Betrayal) ────────────────────────────────────
-// 4-panel reveal, haptic feedback, red flash on steal, aftermath summary
+// Shows only: pool loot remaining + your own earnings.
+// Other players' actions/money are hidden.
+// Deposit to Vault visible only on final round (round 3).
+// Next Round → Chat screen (pre-round lobby chat).
 // ─────────────────────────────────────────────────────────────────────────────
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar,
-  Dimensions, Vibration, Animated,
+  View, Text, StyleSheet, TouchableOpacity, StatusBar, Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  runOnJS,
+  Easing,
+} from 'react-native-reanimated';
 import { Colors, Spacing, Radius, FontSize, FontWeight } from '@theme/index';
 import { useGameStore } from '../store/gameStore';
-import type { RoundResult } from '@game/game';
 
-const { width: W } = Dimensions.get('window');
+const MAX_ROUNDS = 3;
 type Props = { navigation: any };
 
-const ACTION_CONFIG: Record<string, { emoji: string; label: string; color: string; bg: string }> = {
-  share: { emoji: '🤝', label: 'SHARED', color: Colors.shareGreen, bg: 'rgba(0,230,118,0.14)' },
-  steal: { emoji: '🗡️', label: 'STOLE', color: Colors.stealRed, bg: 'rgba(255,77,77,0.14)' },
-  shield: { emoji: '🛡️', label: 'SHIELDED', color: Colors.shieldBlue, bg: 'rgba(41,121,255,0.14)' },
-};
-
-// ── Result Card ───────────────────────────────────────────────────────────────
-function ResultCard({ result, delay }: { result: RoundResult; delay: number }) {
-  const revealAnim = useRef(new Animated.Value(0)).current;
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const flashAnim = useRef(new Animated.Value(0)).current;
-  const config = ACTION_CONFIG[result.action];
-
-  useEffect(() => {
-    setTimeout(() => {
-      Animated.spring(revealAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-        speed: 8,
-        bounciness: 12,
-      }).start(() => {
-        if (result.action === 'steal') {
-          Vibration.vibrate([0, 80, 50, 80]);
-          // Red flash
-          Animated.sequence([
-            Animated.timing(flashAnim, { toValue: 1, duration: 120, useNativeDriver: false }),
-            Animated.timing(flashAnim, { toValue: 0, duration: 300, useNativeDriver: false }),
-          ]).start();
-          // Shake
-          Animated.sequence([
-            Animated.timing(shakeAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
-            Animated.timing(shakeAnim, { toValue: 10, duration: 60, useNativeDriver: true }),
-            Animated.timing(shakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
-            Animated.timing(shakeAnim, { toValue: 8, duration: 60, useNativeDriver: true }),
-            Animated.timing(shakeAnim, { toValue: 0, duration: 60, useNativeDriver: true }),
-          ]).start();
-        }
-      });
-    }, delay);
-  }, [delay, flashAnim, revealAnim, result.action, shakeAnim]);
-
-  const flashBg = flashAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['transparent', 'rgba(255,77,77,0.5)'],
-  });
-
-  return (
-    <Animated.View
-      style={[
-        styles.resultCard,
-        { backgroundColor: config.bg, borderColor: config.color },
-        { transform: [{ scale: revealAnim }, { translateX: shakeAnim }] },
-        { opacity: revealAnim },
-      ]}
-    >
-      {/* Red flash overlay */}
-      <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: flashBg, borderRadius: Radius.md }]} />
-      <Text style={styles.resultAvatar}>{result.avatar}</Text>
-      <Text style={styles.resultName} numberOfLines={1}>{result.playerName}</Text>
-      <Text style={styles.resultActionEmoji}>{config.emoji}</Text>
-      <Text style={[styles.resultActionLabel, { color: config.color }]}>{config.label}</Text>
-      {result.moneyGained > 0 && (
-        <Text style={styles.resultGain}>+{result.moneyGained} 💵</Text>
-      )}
-      {result.moneyLost > 0 && (
-        <Text style={styles.resultLoss}>-{result.moneyLost} 💵</Text>
-      )}
-      {result.wasBetrayed && (
-        <View style={styles.betrayedBadge}>
-          <Text style={styles.betrayedBadgeText}>BETRAYED!</Text>
-        </View>
-      )}
-    </Animated.View>
-  );
-}
-
 export default function RevealScreen({ navigation }: Props) {
-  const { roundResults, matchMoney, currentRound, depositToVault, leaveRoom } = useGameStore();
+  const {
+    roundResults, matchMoney, currentRound, totalLoot,
+    depositToVault, leaveRoom,
+  } = useGameStore();
+
   const [showSummary, setShowSummary] = useState(false);
+  const [countdown, setCountdown] = useState(5);
   const summaryAnim = useRef(new Animated.Value(0)).current;
 
+  // ── Reanimated exit transition ──────────────────────────────────────────────
+  const screenOpacity = useSharedValue(1);
+  const screenScale = useSharedValue(1);
+  const screenTranslateY = useSharedValue(0);
+
+  const screenAnimStyle = useAnimatedStyle(() => ({
+    flex: 1,
+    opacity: screenOpacity.value,
+    transform: [
+      { scale: screenScale.value },
+      { translateY: screenTranslateY.value },
+    ],
+  }));
+
+  const navigateHome = useCallback(() => {
+    leaveRoom();
+    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+  }, [leaveRoom, navigation]);
+
+  const handleDepositAndExit = useCallback(() => {
+    depositToVault(matchMoney);
+    screenScale.value = withTiming(0.92, { duration: 180, easing: Easing.in(Easing.quad) });
+    screenOpacity.value = withTiming(0, { duration: 320, easing: Easing.in(Easing.quad) });
+    screenTranslateY.value = withSequence(
+      withTiming(12, { duration: 120, easing: Easing.out(Easing.quad) }),
+      withTiming(60, { duration: 260, easing: Easing.in(Easing.quad) }, (finished) => {
+        if (finished) { runOnJS(navigateHome)(); }
+      }),
+    );
+  }, [depositToVault, matchMoney, navigateHome, screenOpacity, screenScale, screenTranslateY]);
+
+  const myResult = roundResults.find((r) => r.playerId.startsWith('local'));
+  const isLastRound = currentRound >= MAX_ROUNDS;
+
+  // Calculate pool remaining: totalLoot minus all gains this round
+  const totalGained = roundResults.reduce((sum, r) => sum + r.moneyGained, 0);
+  const poolRemaining = Math.max(0, totalLoot - totalGained);
+
   useEffect(() => {
-    // Show summary after all cards reveal
     const t = setTimeout(() => {
       setShowSummary(true);
       Animated.spring(summaryAnim, { toValue: 1, useNativeDriver: true, speed: 6, bounciness: 8 }).start();
-    }, roundResults.length * 400 + 1000);
+    }, 800);
     return () => clearTimeout(t);
-  }, [roundResults.length, summaryAnim]);
+  }, [summaryAnim]);
 
-  const hasSteal = roundResults.some((r) => r.action === 'steal');
-  const myResult = roundResults.find((r) => r.playerId.startsWith('local'));
+  // ── 5-second auto-navigate to Chat (non-final rounds) ──────────────────────
+  useEffect(() => {
+    if (isLastRound) { return; }
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          navigation.replace('Chat');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isLastRound, navigation]);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+    <Reanimated.View style={screenAnimStyle}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <StatusBar barStyle="light-content" backgroundColor={Colors.background} hidden={true} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>
-          {hasSteal ? '💀 BETRAYAL DETECTED' : '✅ ROUND COMPLETE'}
-        </Text>
-        <Text style={styles.roundLabel}>ROUND {currentRound}</Text>
-      </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>� ROUND {currentRound} RESULT</Text>
+          <Text style={styles.roundLabel}>
+            {isLastRound ? '🏁 FINAL ROUND' : `ROUND ${currentRound} / ${MAX_ROUNDS}`}
+          </Text>
+        </View>
 
-      {/* 4-panel cards */}
-      <View style={styles.cardsGrid}>
-        {roundResults.map((result, i) => (
-          <ResultCard key={result.playerId} result={result} delay={i * 300} />
-        ))}
-      </View>
+        {/* Pool remaining — big focal card */}
+        <View style={styles.poolCard}>
+          <Text style={styles.poolLabel}>💰 POOL REMAINING</Text>
+          <Text style={styles.poolValue}>{poolRemaining.toLocaleString()} 💵</Text>
+          <Text style={styles.poolSub}>Out of {totalLoot.toLocaleString()} total loot</Text>
+        </View>
 
-      {/* Aftermath summary */}
-      {showSummary && (
-        <Animated.View style={[styles.summary, { transform: [{ scale: summaryAnim }], opacity: summaryAnim }]}>
-          <Text style={styles.summaryTitle}>💰 YOUR CUT</Text>
-          {myResult && (
+        {/* My result summary */}
+        {showSummary && (
+          <Animated.View style={[styles.summary, { transform: [{ scale: summaryAnim }], opacity: summaryAnim }]}>
+            <Text style={styles.summaryTitle}>🎯 YOUR ROUND</Text>
+
+            {myResult ? (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryItem}>You gained</Text>
+                  <Text style={[styles.summaryValue, { color: Colors.shareGreen }]}>
+                    +{myResult.moneyGained} 💵
+                  </Text>
+                </View>
+                {myResult.moneyLost > 0 && (
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryItem}>You lost (stolen)</Text>
+                    <Text style={[styles.summaryValue, { color: Colors.stealRed }]}>
+                      -{myResult.moneyLost} 💵
+                    </Text>
+                  </View>
+                )}
+                {myResult.wasBetrayed && (
+                  <View style={styles.betrayedBanner}>
+                    <Text style={styles.betrayedBannerText}>⚠️ YOU WERE BETRAYED THIS ROUND</Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <Text style={styles.noResult}>No data for this round.</Text>
+            )}
+
+            <View style={styles.divider} />
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryItem}>Gained</Text>
-              <Text style={[styles.summaryValue, { color: Colors.shareGreen }]}>+{myResult.moneyGained}</Text>
+              <Text style={styles.summaryItem}>Your total match money</Text>
+              <Text style={[styles.summaryValue, { color: Colors.gold }]}>{matchMoney} 💵</Text>
             </View>
-          )}
-          {myResult && myResult.moneyLost > 0 && (
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryItem}>Lost (stolen)</Text>
-              <Text style={[styles.summaryValue, { color: Colors.stealRed }]}>-{myResult.moneyLost}</Text>
-            </View>
-          )}
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryItem}>Total Match Money</Text>
-            <Text style={[styles.summaryValue, { color: Colors.gold }]}>{matchMoney} 💵</Text>
-          </View>
 
-          <View style={styles.summaryActions}>
-            <TouchableOpacity
-              style={styles.depositBtn}
-              onPress={() => {
-                depositToVault(matchMoney);
-                setTimeout(() => { leaveRoom(); navigation.replace('Home'); }, 800);
-              }}
-            >
-              <Text style={styles.depositBtnText}>🏦 Deposit to Vault</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.continueBtn}
-              onPress={() => navigation.replace('Game')}
-            >
-              <Text style={styles.continueBtnText}>▶ Next Round</Text>
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      )}
-    </SafeAreaView>
+            {/* Action buttons */}
+            <View style={styles.summaryActions}>
+              {isLastRound ? (
+                <TouchableOpacity style={styles.depositBtn} onPress={handleDepositAndExit}>
+                  <Text style={styles.depositBtnText}>🏦 Deposit to Vault</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.autoNextBox}>
+                  <Text style={styles.autoNextText}>
+                    ⏱ Next round in <Text style={styles.autoNextCount}>{countdown}s</Text>
+                  </Text>
+                </View>
+              )}
+            </View>
+          </Animated.View>
+        )}
+      </SafeAreaView>
+    </Reanimated.View>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.background },
-  header: { alignItems: 'center', paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.divider },
+  header: {
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.divider,
+  },
   title: { fontSize: FontSize.lg, fontWeight: FontWeight.bold as any, color: Colors.textPrimary },
   roundLabel: { fontSize: FontSize.xs, color: Colors.textSecondary, letterSpacing: 2, marginTop: 2 },
 
-  // Cards grid — 2x2
-  cardsGrid: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', padding: Spacing.md, alignContent: 'center' },
-  resultCard: {
-    width: W / 2 - Spacing.md * 1.5,
-    marginHorizontal: Spacing.xs,
-    marginVertical: Spacing.xs,
-    borderRadius: Radius.md,
+  // Pool card
+  poolCard: {
+    margin: Spacing.md,
+    marginBottom: Spacing.sm,
+    backgroundColor: 'rgba(255,200,50,0.1)',
+    borderRadius: Radius.lg,
     borderWidth: 2,
+    borderColor: Colors.gold,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: Spacing.sm,
-    minHeight: 140,
-    overflow: 'hidden',
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
   },
-  resultAvatar: { fontSize: 36, marginBottom: 4 },
-  resultName: { fontSize: FontSize.xs, color: Colors.textSecondary, textAlign: 'center' },
-  resultActionEmoji: { fontSize: 28, marginTop: 4 },
-  resultActionLabel: { fontSize: FontSize.xs, fontWeight: FontWeight.bold as any, letterSpacing: 1.5, marginTop: 2 },
-  resultGain: { fontSize: FontSize.xs, color: Colors.shareGreen, marginTop: 2 },
-  resultLoss: { fontSize: FontSize.xs, color: Colors.stealRed, marginTop: 2 },
-  betrayedBadge: { marginTop: 4, backgroundColor: Colors.stealRed, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  betrayedBadgeText: { fontSize: 8, color: '#fff', fontWeight: FontWeight.bold as any, letterSpacing: 1 },
+  poolLabel: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    letterSpacing: 2,
+    marginBottom: Spacing.xs,
+  },
+  poolValue: {
+    fontSize: 42,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.gold,
+  },
+  poolSub: {
+    fontSize: FontSize.xs,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
 
-  // Summary
-  summary: { margin: Spacing.md, backgroundColor: Colors.cardBg, borderRadius: Radius.lg, padding: Spacing.md, borderWidth: 1, borderColor: Colors.gold },
-  summaryTitle: { fontSize: FontSize.md, fontWeight: FontWeight.bold as any, color: Colors.gold, textAlign: 'center', marginBottom: Spacing.sm },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
+  // Summary card
+  summary: {
+    flex: 1,
+    margin: Spacing.md,
+    marginTop: 0,
+    backgroundColor: Colors.cardBg,
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.divider,
+  },
+  summaryTitle: {
+    fontSize: FontSize.md,
+    fontWeight: FontWeight.bold as any,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: Spacing.sm,
+  },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   summaryItem: { fontSize: FontSize.sm, color: Colors.textSecondary },
   summaryValue: { fontSize: FontSize.sm, fontWeight: FontWeight.bold as any },
-  summaryActions: { flexDirection: 'row', gap: 10, marginTop: Spacing.md },
-  depositBtn: { flex: 1, backgroundColor: Colors.gold, borderRadius: Radius.md, padding: 12, alignItems: 'center' },
+  noResult: { fontSize: FontSize.sm, color: Colors.textSecondary, textAlign: 'center', paddingVertical: Spacing.sm },
+  divider: { height: 1, backgroundColor: Colors.divider, marginVertical: Spacing.sm },
+
+  betrayedBanner: {
+    backgroundColor: 'rgba(255,77,77,0.18)',
+    borderRadius: Radius.sm,
+    padding: Spacing.xs,
+    marginVertical: Spacing.xs,
+    alignItems: 'center',
+  },
+  betrayedBannerText: { fontSize: FontSize.xs, color: Colors.stealRed, fontWeight: FontWeight.bold as any, letterSpacing: 1 },
+
+  summaryActions: { marginTop: Spacing.md },
+  depositBtn: {
+    backgroundColor: Colors.gold,
+    borderRadius: Radius.md,
+    padding: 14,
+    alignItems: 'center',
+  },
   depositBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold as any, color: Colors.background },
-  continueBtn: { flex: 1, backgroundColor: Colors.surfaceElevated, borderRadius: Radius.md, padding: 12, alignItems: 'center', borderWidth: 1, borderColor: Colors.shieldBlue },
-  continueBtnText: { fontSize: FontSize.sm, fontWeight: FontWeight.bold as any, color: Colors.shieldBlue },
+  autoNextBox: {
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.md,
+    padding: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.shieldBlue,
+  },
+  autoNextText: { fontSize: FontSize.sm, color: Colors.textSecondary },
+  autoNextCount: { color: Colors.shieldBlue, fontWeight: FontWeight.bold as any },
 });

@@ -154,7 +154,7 @@ function ConfirmModal({ item, vaultGold, onConfirm, onClose }: {
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
-export default function ShopScreen() {
+export default function ShopScreen({ navigation }: { navigation: any }) {
   const {
     globalShopItems, inMatchItems, vaultGold, matchMoney,
     purchaseGlobalItem, purchaseInMatchItem,
@@ -174,11 +174,15 @@ export default function ShopScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent hidden={true} />
         <ScrollView showsVerticalScrollIndicator={false}>
 
           {/* ── Header ─────────────────────────────────────────────── */}
           <View style={styles.pageHeader}>
+            {/* Back button */}
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+              <Text style={styles.backBtnText}>←</Text>
+            </TouchableOpacity>
             <Text style={styles.pageTitle}>🏴‍☠️ BLACK MARKET</Text>
             <View style={styles.walletRow}>
               <SkiaBadge
@@ -286,7 +290,16 @@ const styles = StyleSheet.create({
 
   // Header
   pageHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.md, paddingTop: Spacing.md, marginBottom: Spacing.sm },
-  pageTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold as any, color: Colors.textPrimary },
+  pageTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold as any, color: Colors.textPrimary, flex: 1, textAlign: 'center' },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnText: { color: Colors.textPrimary, fontSize: FontSize.lg, fontWeight: FontWeight.bold as any, lineHeight: 20 },
   walletRow: { flexDirection: 'row', gap: 8 },
   walletChip: { backgroundColor: Colors.cardBg, borderRadius: Radius.sm, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 1, borderColor: Colors.gold },
   walletChipSilver: { borderColor: Colors.textSecondary },

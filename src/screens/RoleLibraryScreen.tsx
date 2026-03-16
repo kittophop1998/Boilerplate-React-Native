@@ -344,7 +344,7 @@ function RoleModal({
 // ─────────────────────────────────────────────────────────────────────────────
 // ── Main Screen ───────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
-export default function RoleLibraryScreen({ navigation: _navigation }: Props) {
+export default function RoleLibraryScreen({ navigation }: Props) {
   const { roles, vaultGold, equipRole, unlockRole, upgradeSkill } = useGameStore();
   const [filter, setFilter] = useState<FilterKey>('all');
   const [selectedRole, setSelectedRole] = useState<HeistRole | null>(null);
@@ -356,10 +356,13 @@ export default function RoleLibraryScreen({ navigation: _navigation }: Props) {
 
   return (
     <SafeAreaView style={screenSt.safe} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent hidden={true} />
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <View style={screenSt.header}>
+        <TouchableOpacity style={screenSt.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
+          <Text style={screenSt.backBtnText}>←</Text>
+        </TouchableOpacity>
         <Text style={screenSt.title}>📖 ROLE LIBRARY</Text>
         <View style={screenSt.goldBadge}>
           <Text style={screenSt.goldText}>🏦 {vaultGold.toLocaleString()}</Text>
@@ -427,6 +430,15 @@ const screenSt = StyleSheet.create({
     paddingTop: Spacing.sm,
     paddingBottom: 2,
   },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backBtnText: { color: Colors.textPrimary, fontSize: FontSize.lg, fontWeight: FontWeight.bold as any, lineHeight: 20 },
   title: {
     fontSize: FontSize.lg,
     fontWeight: FontWeight.bold as any,

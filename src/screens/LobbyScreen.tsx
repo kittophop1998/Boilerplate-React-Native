@@ -146,7 +146,7 @@ export default function LobbyScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} hidden={true} />
 
       {/* ── Header ──────────────────────────────────────────────── */}
       <View style={styles.header}>

@@ -103,7 +103,7 @@ export default function GachaScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.background} hidden={true} />
 
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <View style={styles.header}>

@@ -130,7 +130,7 @@ export default function DuelScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} hidden={true} />
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <View style={styles.header}>

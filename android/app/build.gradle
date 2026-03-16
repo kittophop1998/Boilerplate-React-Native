@@ -97,9 +97,9 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file('stamp_duel.keystore')
+            storeFile file('greedy-gang.keystore')
             storePassword '123456'
-            keyAlias 'stamp_duel'
+            keyAlias 'greedy-gang'
             keyPassword '123456'
         }
     }

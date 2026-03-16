@@ -29,6 +29,7 @@
     "react-native-config": "^1.6.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.30.0",
+    "react-native-immersive-mode": "^2.0.2",
     "react-native-reanimated": "^4.2.2",
     "react-native-safe-area-context": "^5.5.2",
     "react-native-screens": "^4.23.0",

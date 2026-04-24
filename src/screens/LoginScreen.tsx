@@ -49,10 +49,11 @@ export default function LoginScreen({ onLogin }: Props) {
         {/* ── Brand ─────────────────────────────────────────────────────── */}
         <View style={styles.brandSection}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoEmoji}>🏰</Text>
+            <Text style={styles.logoEmoji}>💰</Text>
           </View>
-          <Text style={styles.brandTitle}>Greedy Gang</Text>
-          <Text style={styles.brandSubtitle}>แก๊งโจรหัวหมอ</Text>
+          <Text style={styles.brandTitle}>The Golden Heist</Text>
+          <Text style={styles.brandTitleSub}>No Honor Among Thieves</Text>
+          <Text style={styles.brandSubtitle}>มหกรรมปล้นทอง: โจรไร้สัจจะ</Text>
           {/* <Text style={styles.brandDesc}></Text> */}
         </View>
 
@@ -150,10 +151,17 @@ const styles = StyleSheet.create({
   },
   logoEmoji: { fontSize: 48 },
   brandTitle: {
-    fontSize: FontSize.xxl,
+    fontSize: FontSize.xl,
     fontWeight: FontWeight.black,
     color: Colors.neonGreen,
-    letterSpacing: 4,
+    letterSpacing: 3,
+    marginBottom: 2,
+  },
+  brandTitleSub: {
+    fontSize: FontSize.sm,
+    fontWeight: FontWeight.semiBold,
+    color: Colors.gold,
+    letterSpacing: 1.5,
     marginBottom: 4,
   },
   brandSubtitle: {

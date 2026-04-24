@@ -1,5 +1,5 @@
 {
-  "name": "stamp_duel",
+  "name": "the-last-duffel",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -29,6 +29,7 @@
     "react-native-config": "^1.6.1",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.30.0",
+    "react-native-image-picker": "^8.2.1",
     "react-native-immersive-mode": "^2.0.2",
     "react-native-reanimated": "^4.2.2",
     "react-native-safe-area-context": "^5.5.2",

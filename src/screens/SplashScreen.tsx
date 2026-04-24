@@ -1,4 +1,4 @@
-// ─── SplashScreen ─────────────────────────────────────────────────────────────
+// ─── ฝากหน่อย — SplashScreen ─────────────────────────────────────────────────
 // Shown once on app launch before entering the main app.
 // Fades in the logo + title, holds for a moment, then fades out and calls onDone.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,9 +30,9 @@ import { Colors, FontSize, FontWeight } from '@theme/index';
 const { width: SW, height: SH } = Dimensions.get('window');
 
 // ── Timings ───────────────────────────────────────────────────────────────────
-const FADE_IN_MS  = 900;   // logo + title fade in
-const HOLD_MS     = 1800;  // how long splash stays visible after fade-in
-const FADE_OUT_MS = 700;   // fade out before navigating
+const FADE_IN_MS  = 700;   // logo + title fade in
+const HOLD_MS     = 400;   // how long splash stays visible (total ~1.8s)
+const FADE_OUT_MS = 500;   // fade out before navigating
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface Props {
@@ -94,23 +94,25 @@ export default function SplashScreen({ onDone }: Props) {
     <Animated.View style={[styles.root, { opacity: screenOpacity }]}>
       {/* ── Skia gradient background ── */}
       <Canvas style={StyleSheet.absoluteFill}>
-        {/* base gradient */}
+        {/* base gradient — warm white to soft peach */}
         <Rect x={0} y={0} width={SW} height={SH}>
           <LinearGradient
             start={vec(SW * 0.5, 0)}
             end={vec(SW * 0.5, SH)}
-            colors={['#3D2575', Colors.background, Colors.tabBarBg]}
+            colors={['#FFF9F5', '#FFF1EB', '#FFE8DC']}
           />
         </Rect>
 
-        {/* glow orbs */}
-        <Circle cx={SW * 0.18} cy={SH * 0.20} r={orbR1} color="rgba(93,63,211,0.38)">
+        {/* coral glow top-left */}
+        <Circle cx={SW * 0.12} cy={SH * 0.15} r={orbR1} color="rgba(255,107,107,0.22)">
           <BlurMask blur={80} style="normal" respectCTM />
         </Circle>
-        <Circle cx={SW * 0.80} cy={SH * 0.75} r={orbR2} color="rgba(255,210,63,0.28)">
-          <BlurMask blur={60} style="normal" respectCTM />
+        {/* turquoise glow bottom-right */}
+        <Circle cx={SW * 0.88} cy={SH * 0.80} r={orbR2} color="rgba(0,201,177,0.25)">
+          <BlurMask blur={70} style="normal" respectCTM />
         </Circle>
-        <Circle cx={SW * 0.60} cy={SH * 0.35} r={70} color="rgba(81,229,255,0.14)">
+        {/* sunshine yellow accent center-right */}
+        <Circle cx={SW * 0.75} cy={SH * 0.28} r={60} color="rgba(255,217,61,0.20)">
           <BlurMask blur={50} style="normal" respectCTM />
         </Circle>
       </Canvas>
@@ -124,14 +126,15 @@ export default function SplashScreen({ onDone }: Props) {
       >
         {/* Logo badge */}
         <View style={styles.logoBadge}>
-          <Text style={styles.logoEmoji}>🏴‍☠️</Text>
+          <Text style={styles.logoEmoji}>🛍️</Text>
         </View>
 
         {/* App name */}
-        <Text style={styles.title}>GREEDY GANG</Text>
+        <Text style={styles.title}>ฝากหน่อย</Text>
+        <Text style={styles.titleSub}>Fark-Noi · ฝากก็ได้ หิ้วก็ดี</Text>
 
         {/* Tagline */}
-        <Text style={styles.tagline}>The Heist Begins.</Text>
+        <Text style={styles.tagline}>แอปฝากของ P2P สำหรับทุกคน 🚀</Text>
 
         {/* Decorative divider */}
         <View style={styles.divider} />
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3D2575', // fallback before Skia paints
+    backgroundColor: '#FFF9F5', // fallback before Skia paints
   },
   content: {
     alignItems: 'center',
@@ -199,19 +202,19 @@ const styles = StyleSheet.create({
   logoBadge: {
     width: 120,
     height: 120,
-    borderRadius: 32,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.28)',
+    borderRadius: 36,
+    backgroundColor: Colors.surface,
+    borderWidth: 2.5,
+    borderColor: Colors.accentLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 28,
-    // glow shadow
-    shadowColor: Colors.gold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.55,
-    shadowRadius: 24,
-    elevation: 16,
+    // warm coral shadow
+    shadowColor: Colors.accent,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.22,
+    shadowRadius: 20,
+    elevation: 12,
   },
   logoEmoji: {
     fontSize: 64,
@@ -222,19 +225,24 @@ const styles = StyleSheet.create({
     fontSize: 38,
     fontWeight: FontWeight.black,
     color: Colors.textPrimary,
-    letterSpacing: 5,
+    letterSpacing: 2,
     textAlign: 'center',
-    textShadowColor: Colors.goldGlow,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 18,
+  },
+  titleSub: {
+    fontSize: 13,
+    fontWeight: FontWeight.medium,
+    color: Colors.accent,
+    letterSpacing: 1,
+    textAlign: 'center',
+    marginTop: 6,
   },
 
   // ── Tagline ─────────────────────────────────────────────────────────────────
   tagline: {
     fontSize: FontSize.md,
     fontWeight: FontWeight.medium,
-    color: 'rgba(255,255,255,0.55)',
-    letterSpacing: 2.5,
+    color: Colors.textSecondary,
+    letterSpacing: 1,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -242,13 +250,13 @@ const styles = StyleSheet.create({
   // ── Divider ─────────────────────────────────────────────────────────────────
   divider: {
     width: 60,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: Colors.gold,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.accent,
     marginTop: 24,
     marginBottom: 24,
     opacity: 0.7,
-    shadowColor: Colors.goldGlow,
+    shadowColor: Colors.accentGlow,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -263,6 +271,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.gold,
+    backgroundColor: Colors.accent,
   },
 });

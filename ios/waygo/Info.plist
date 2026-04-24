@@ -34,7 +34,14 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>แอปต้องการตำแหน่งของคุณเพื่อบันทึกพิกัด GPS ของร้าน</string>
+	<!-- react-native-image-picker permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>แอปต้องการกล้องเพื่อถ่ายรูปร้านลับที่คุณค้นพบ</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>แอปต้องการเข้าถึงคลังรูปเพื่อเลือกรูปร้านที่ต้องการแชร์</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>แอปต้องการบันทึกรูปที่ถ่ายลงในคลังรูปของคุณ</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

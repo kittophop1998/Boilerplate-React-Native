@@ -1,105 +1,52 @@
-// ─── The Heist — Main Navigation ─────────────────────────────────────────────
-// Full-screen game layout: NO visible bottom tab bar.
-// Navigation is driven by in-screen buttons (Clash of Clans / Free Fire style).
-// Tab.Navigator is kept so react-navigation manages state & back-stack correctly,
-// but the tab bar is hidden via tabBarStyle: { display: 'none' }.
+// ─── ฝากหน่อย (Fark-Noi) — Main Navigation ──────────────────────────────────
+// Flow: Onboarding (LandingScreen) → MainApp (Stack: Home)
+// Overlay Screens (Stack): PostRequest · TaskBoard · ActiveOrder · ScoutAnnounce · Chat · Settings
 // ─────────────────────────────────────────────────────────────────────────────
 import React, { useCallback } from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 // Screens
+import LandingScreen from '@screens/LandingScreen';
 import HomeScreen from '@screens/HomeScreen';
-import LobbyScreen from '@screens/LobbyScreen';
-import GameScreen from '@screens/GameScreen';
-import RevealScreen from '@screens/RevealScreen';
+import ActiveOrderScreen from '@screens/ActiveOrderScreen';
+import ScoutAnnounceScreen from '@screens/ScoutAnnounceScreen';
+import PostRequestScreen from '@screens/PostRequestScreen';
+import TaskBoardScreen from '@screens/TaskBoardScreen';
 import ChatScreen from '@screens/ChatScreen';
-import RoleLibraryScreen from '@screens/RoleLibraryScreen';
-import ShopScreen from '@screens/ShopScreen';
-import TransferScreen from '@screens/TransferScreen';
 import SettingsScreen from '@screens/SettingsScreen';
-
-// Background
-import SkiaBackground from '@components/skia/SkiaBackground';
+import AppDetailScreen from '@screens/AppDetailScreen';
 
 // ─────────────────────────────────────────────────────────────────────────────
 type Props = { onLogout: () => void };
 
-const Tab = createBottomTabNavigator();
-const HeistStack = createNativeStackNavigator();
-const RoleStack = createNativeStackNavigator();
-const ShopStack = createNativeStackNavigator();
-const ProfileStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
-// ── Heist Stack: Home → Lobby → Game → Reveal → Transfer ──────────────────────
-function HeistStackScreen() {
-  return (
-    <HeistStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-      <HeistStack.Screen name="Home"     component={HomeScreen} />
-      <HeistStack.Screen name="Lobby"    component={LobbyScreen} />
-      <HeistStack.Screen name="Game"     component={GameScreen} />
-      <HeistStack.Screen name="Reveal"   component={RevealScreen} />
-      <HeistStack.Screen name="Chat"     component={ChatScreen} />
-      <HeistStack.Screen name="Transfer">
-        {(props: any) => <TransferScreen {...props} />}
-      </HeistStack.Screen>
-    </HeistStack.Navigator>
-  );
-}
-
-// ── Role Stack ────────────────────────────────────────────────────────────────
-function RoleStackScreen() {
-  return (
-    <RoleStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-      <RoleStack.Screen name="RoleLibrary" component={RoleLibraryScreen} />
-    </RoleStack.Navigator>
-  );
-}
-
-// ── Shop Stack ────────────────────────────────────────────────────────────────
-function ShopStackScreen() {
-  return (
-    <ShopStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-      <ShopStack.Screen name="Shop" component={ShopScreen} />
-    </ShopStack.Navigator>
-  );
-}
-
-// ── Profile Stack ─────────────────────────────────────────────────────────────
-function ProfileStackScreen({ onLogout }: Props) {
+// ── Root Stack ────────────────────────────────────────────────────────────────
+export default function MainTabs({ onLogout }: Props) {
   const SettingsWithLogout = useCallback(
     (props: any) => <SettingsScreen {...props} onLogout={onLogout} />,
     [onLogout],
   );
-  return (
-    <ProfileStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
-      <ProfileStack.Screen name="Settings">
-        {(props) => <SettingsWithLogout {...props} />}
-      </ProfileStack.Screen>
-    </ProfileStack.Navigator>
-  );
-}
 
-// ── Main Tabs ──────────────────────────────────────────────────────────────────
-// The tab bar is intentionally hidden — navigation happens via in-game buttons.
-export default function MainTabs({ onLogout }: Props) {
   return (
-    <SkiaBackground>
-      <Tab.Navigator
-        screenOptions={{
-          headerShown: false,
-          sceneStyle: { backgroundColor: 'transparent' },
-          // ↓ Hide the tab bar completely — Clash of Clans style
-          tabBarStyle: { display: 'none' },
-        }}
-      >
-        <Tab.Screen name="HeistTab" component={HeistStackScreen} />
-        <Tab.Screen name="RoleTab"  component={RoleStackScreen} />
-        <Tab.Screen name="ShopTab"  component={ShopStackScreen} />
-        <Tab.Screen name="ProfileTab">
-          {() => <ProfileStackScreen onLogout={onLogout} />}
-        </Tab.Screen>
-      </Tab.Navigator>
-    </SkiaBackground>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* 1. Onboarding — shown first */}
+      <Stack.Screen name="Onboarding" component={LandingScreen} />
+
+      {/* 2. Main App */}
+      <Stack.Screen name="Home" component={HomeScreen} />
+
+      {/* 3. Overlay / Action Screens */}
+      <Stack.Screen name="PostRequest" component={PostRequestScreen} />
+      <Stack.Screen name="TaskBoard" component={TaskBoardScreen} />
+      <Stack.Screen name="ActiveOrder" component={ActiveOrderScreen} />
+      <Stack.Screen name="ScoutAnnounce" component={ScoutAnnounceScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
+      <Stack.Screen name="OrderDetail" component={ActiveOrderScreen} />
+      <Stack.Screen name="AppDetail" component={AppDetailScreen} />
+      <Stack.Screen name="Settings" options={{ presentation: 'modal' }}>
+        {(props) => <SettingsWithLogout {...props} />}
+      </Stack.Screen>
+    </Stack.Navigator>
   );
 }
